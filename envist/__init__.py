@@ -56,6 +56,8 @@ Usage:
 '''
 
 from typing import Any, Callable, Dict, Optional, Union, List
+import os
+
 
 __version__ = '0.0.1'
 __all__ = ['Envist']
@@ -63,19 +65,27 @@ __author__ = 'Md. Almas Ali'
 
 
 class EnvistCastError(Exception):
-    ...
+    '''
+    Raised when unable to cast a value to a specific type.
+    '''
 
 
 class EnvistParseError(Exception):
-    ...
+    '''
+    Raised when unable to parse a line in env file.
+    '''
 
 
 class EnvistValueError(Exception):
-    ...
+    '''
+    Raised when a value is not found in env.
+    '''
 
 
 class EnvistTypeError(Exception):
-    ...
+    '''
+    Raised when data is not a dictionary.
+    '''
 
 
 class Envist:
@@ -92,16 +102,16 @@ class Envist:
         '''
         Load env variables from file.
         '''
-        with open(self.path, 'r') as f:
+        with open(self.path, 'r', encoding='utf-8') as file:
             # Remove empty lines, newlines, and comments
-            _lines = [line.strip() for line in f.readlines()
+            _lines = [line.strip() for line in file.readlines()
                       if line.strip() and not line.startswith('#')]
             try:
                 for line in _lines:
                     key, value = line.strip().split('=')
                     self.env[key.strip()] = value.strip()
-            except ValueError:
-                raise EnvistParseError(f'Unable to parse "{line}"')
+            except ValueError as exception:
+                raise EnvistParseError(f'Unable to parse "{line}"') from exception
         return self.env
 
     def get(self, key: str, *,
@@ -116,8 +126,8 @@ class Envist:
         try:
             if cast:
                 return cast(value)
-        except ValueError:
-            raise EnvistCastError(f'Unable to cast "{value}" to "{cast}"')
+        except ValueError as exception:
+            raise EnvistCastError(f'Unable to cast "{value}" to "{cast}"') from exception
 
         return value
 
@@ -150,7 +160,7 @@ class Envist:
             raise EnvistValueError(f'"{key}" not found in env')
         self.env.pop(key, None)
 
-    def unset_all(self, data_list: List[str] = None) -> None:
+    def unset_all(self, data_list: List[str] | None = None) -> None:
         '''
         Unset multiple env variables.
         '''
@@ -166,9 +176,9 @@ class Envist:
         '''
         Save updated env variables to file.
         '''
-        with open(self.path, 'w') as f:
+        with open(self.path, 'w', encoding='utf-8') as file:
             for key, value in self.env.items():
-                f.write(f'{key}={value}\n')
+                file.write(f'{key}={value}\n')
 
     def __repr__(self) -> str:
         '''
