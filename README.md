@@ -1,12 +1,19 @@
 # Envist
 
-![Envist Logo](https://github.com/Almas-Ali/envist/blob/master/logo.png?raw=true "Envist Logo")
+<center>
+
+<img src="https://github.com/Almas-Ali/envist/blob/master/logo.png?raw=true" alt="Envist Logo" width="200"/>
+
+[![PyPI version](https://badge.fury.io/py/envist.svg)](https://pypi.org/project/envist/)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/envist)](https://pypi.org/project/envist/)
+[![PyPI - License](https://img.shields.io/pypi/l/envist)](https://pypi.org/project/envist/)
+[![Hits](https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2FAlmas-Ali%2Fenvist&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=Total+hits&edge_flat=false)](https://hits.seeyoufarm.com)
 
 A simple, lightweight, and easy to use environment variable manager for Python
 
 Created by [**Md. Almas Ali**](https://github.com/Almas-Ali "Md. Almas Ali")
 
-[![Hits](https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2FAlmas-Ali%2Fenvist&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=Total+hits&edge_flat=false)](https://hits.seeyoufarm.com)
+</center>
 
 ## Table of Contents
 
