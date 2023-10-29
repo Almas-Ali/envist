@@ -1,18 +1,34 @@
 # Envist
 
 <p align="center">
-
+<a href="https://pypi.org/project/envist" target="_blank" title="Envist PyPI Project"> 
 <img src="https://github.com/Almas-Ali/envist/blob/master/logo.png?raw=true" alt="Envist Logo" width="200"/>
+</a>
+</p>
 
-[![PyPI version](https://badge.fury.io/py/envist.svg)](https://pypi.org/project/envist/)
-[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/envist)](https://pypi.org/project/envist/)
-[![PyPI - License](https://img.shields.io/pypi/l/envist)](https://pypi.org/project/envist/)
-[![Hits](https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2FAlmas-Ali%2Fenvist&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=Total+hits&edge_flat=false)](https://hits.seeyoufarm.com)
+<p align="center">
+<a href="https://pypi.org/project/envist" target="_blank" title="Envist PyPI Project">
+<img src="https://badge.fury.io/py/envist.svg" alt="PyPI version" />
+</a>
+<a href="https://pypi.org/project/envist" target="_blank" title="Envist PyPI Project">
+<img src="https://img.shields.io/pypi/pyversions/envist" alt="PyPI - Python Version" />
+</a>
+<a href="https://pypi.org/project/envist" target="_blank" title="Envist PyPI Project">
+<img src="https://img.shields.io/pypi/l/envist" alt="PyPI - License" />
+</a>
+<a href="https://github.com/Almas-Ali/envist" target="_blank" title="Hits">
+<img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2FAlmas-Ali%2Fenvist&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=Total+hits&edge_flat=false" alt="Hits" />
+</a>
+</p>
 
-A simple, lightweight, and easy to use environment variable manager for Python
+<p align="center">
+A simple, lightweight, and easy to use environment variable manager for Python.
+</p>
 
-Created by [**Md. Almas Ali**](https://github.com/Almas-Ali "Md. Almas Ali")
-
+<p align="center">
+Created by <a href="https://github.com/Almas-Ali" target="_blank" title="Md. Almas Ali">
+<strong>Md. Almas Ali</strong>
+</a>
 </p>
 
 ## Table of Contents
