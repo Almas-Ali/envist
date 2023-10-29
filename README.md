@@ -1,6 +1,6 @@
 # Envist
 
-<center>
+<p align="center">
 
 <img src="https://github.com/Almas-Ali/envist/blob/master/logo.png?raw=true" alt="Envist Logo" width="200"/>
 
@@ -13,7 +13,7 @@ A simple, lightweight, and easy to use environment variable manager for Python
 
 Created by [**Md. Almas Ali**](https://github.com/Almas-Ali "Md. Almas Ali")
 
-</center>
+</p>
 
 ## Table of Contents
 
