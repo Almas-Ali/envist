@@ -75,7 +75,7 @@ import os
 import re
 
 
-__version__ = '0.0.1'
+__version__ = '0.0.3'
 __all__ = ['Envist']
 __author__ = 'Md. Almas Ali'
 
