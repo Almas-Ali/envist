@@ -269,7 +269,7 @@ class Envist:
             raise EnvistValueError(f'"{key}" not found in env')
         self.env.pop(key, None)
 
-    def unset_all(self, data_list: List[str] | None = None) -> None:
+    def unset_all(self, data_list: list[str] | None = None) -> None:
         '''
         Unset multiple env variables.
         '''
