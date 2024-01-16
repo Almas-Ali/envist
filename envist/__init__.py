@@ -169,7 +169,10 @@ class Envist:
         elif cast == 'float':
             value = float(value)
         elif cast == 'bool':
-            value = bool(value)
+            if value.lower() == 'true':
+                value = True
+            else:
+                value = False
         elif cast in ('list', 'List'):
             value = List(value)
         elif cast == 'str':
