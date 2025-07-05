@@ -80,6 +80,9 @@ class TypeCaster:
                 }
             else:
                 raise EnvistCastError(f"Unsupported nested type: {base_type}")
+        elif "<" in type_str or ">" in type_str:
+            # Unmatched brackets are invalid
+            raise EnvistCastError(f"Invalid type syntax: {type_str}")
         else:
             # Simple type
             return {"type": type_str.lower()}
@@ -98,13 +101,13 @@ class TypeCaster:
                 bracket_count -= 1
                 current += char
             elif char == "," and bracket_count == 0:
-                parts.append(current)
+                parts.append(current.strip())
                 current = ""
             else:
                 current += char
 
         if current:
-            parts.append(current)
+            parts.append(current.strip())
 
         return parts
 
@@ -199,8 +202,26 @@ class TypeCaster:
             pass
 
         # Handle nested list notation like [[1,2,3],[4,5,6],[7,8,9]]
+        # But first check if we have multiple top-level nested structures
         if value.startswith("[[") and value.endswith("]]"):
-            return self._parse_nested_list(value)
+            # Check if this is multiple nested lists by using smart split
+            top_level_items = self._smart_split(value, ",")
+            if len(top_level_items) > 1:
+                # Multiple nested structures, parse each separately
+                result = []
+                for item in top_level_items:
+                    item = item.strip()
+                    if item.startswith("[[") and item.endswith("]]"):
+                        result.append(self._parse_nested_list(item))
+                    elif item.startswith("[") and item.endswith("]"):
+                        # Single nested list
+                        result.append(self._cast_to_smart_list(item))
+                    else:
+                        result.append(item)
+                return result
+            else:
+                # Single nested list structure
+                return self._parse_nested_list(value)
 
         # Handle list of JSON objects like {"name":"John","role":"admin"},{"name":"Jane","role":"user"}
         if "{" in value and "}" in value:
@@ -419,6 +440,122 @@ class TypeCaster:
                 return value[1:-1]
         return value
 
+    def _parse_bracket_list(self, value: str) -> List[Any]:
+        """Parse bracketed list notation like [1,2,3] or [[1,2],[3,4]]"""
+        if not isinstance(value, str) or not value.strip():
+            return []
+            
+        value = value.strip()
+        
+        # Simple case: no brackets, just return as is
+        if not (value.startswith('[') and value.endswith(']')):
+            return [value]
+            
+        # Remove outer brackets
+        inner = value[1:-1].strip()
+        if not inner:
+            return []
+            
+        # Check if this is a nested list
+        if inner.startswith('[') and ']' in inner:
+            return self._parse_nested_bracket_structure(inner)
+        else:
+            # Simple list
+            return self._smart_split(inner, ',')
+    
+    def _parse_nested_bracket_structure(self, value: str) -> List[List[Any]]:
+        """Parse complex nested bracket structures"""
+        if not value:
+            return []
+            
+        result = []
+        current_item = ""
+        bracket_count = 0
+        
+        for char in value:
+            if char == '[':
+                bracket_count += 1
+                current_item += char
+            elif char == ']':
+                bracket_count -= 1
+                current_item += char
+                if bracket_count == 0:
+                    # Complete nested item
+                    parsed_item = self._parse_bracket_list(current_item)
+                    result.append(parsed_item)
+                    current_item = ""
+            elif char == ',' and bracket_count == 0:
+                # Item separator at top level
+                if current_item.strip():
+                    result.append([current_item.strip()])
+                current_item = ""
+            else:
+                current_item += char
+                
+        # Handle remaining item
+        if current_item.strip():
+            if current_item.startswith('[') and current_item.endswith(']'):
+                result.append(self._parse_bracket_list(current_item))
+            else:
+                result.append([current_item.strip()])
+                
+        return result
+    
+    def _parse_dict_value(self, value: str) -> Any:
+        """Parse dictionary values that could be lists, objects, or simple values"""
+        value = value.strip()
+        
+        # List value like [1,2,3]
+        if value.startswith('[') and value.endswith(']'):
+            return self._parse_bracket_list(value)
+        
+        # JSON object value like {"key":"value"}  
+        if value.startswith('{') and value.endswith('}'):
+            try:
+                return json.loads(value)
+            except:
+                return value
+                
+        # Simple value - remove quotes if present
+        return self._remove_quotes(value)
+    
+    def _smart_split_dict_pairs(self, value: str) -> List[str]:
+        """Split dictionary pairs accounting for nested structures"""
+        if not value:
+            return []
+            
+        pairs = []
+        current_pair = ""
+        bracket_count = 0
+        brace_count = 0
+        
+        for char in value:
+            if char == '[':
+                bracket_count += 1
+                current_pair += char
+            elif char == ']':
+                bracket_count -= 1  
+                current_pair += char
+            elif char == '{':
+                brace_count += 1
+                current_pair += char
+            elif char == '}':
+                brace_count -= 1
+                current_pair += char
+            elif char == ',' and bracket_count == 0 and brace_count == 0:
+                # Top-level separator
+                if current_pair.strip():
+                    pairs.append(current_pair.strip())
+                current_pair = ""
+            else:
+                current_pair += char
+                
+        # Handle remaining pair
+        if current_pair.strip():
+            pairs.append(current_pair.strip())
+            
+        return pairs
+
     # Keep the legacy methods for backward compatibility
     def _cast_to_list(self, value: str) -> list:
         """Cast string to list (legacy method)"""
@@ -441,4 +578,7 @@ class TypeCaster:
 
     def _cast_to_json(self, value: str) -> Any:
         """Cast string to JSON object"""
-        return json.loads(value)
+        try:
+            return json.loads(value)
+        except json.JSONDecodeError as e:
+            raise EnvistCastError(f"Invalid JSON format: {e}")

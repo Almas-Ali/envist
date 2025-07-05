@@ -5,3 +5,7 @@ main.py
 build/
 dist/
 envist.egg-info/
+.coverage
+coverage.xml
+TODO.md
+Makefile
