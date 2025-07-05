@@ -2,6 +2,8 @@
 Envist is a simple .env file parser for Python. It's a single file module with no dependencies. 
 
 Usage:
+
+```python
     from envist import Envist
 
     env = Envist()
@@ -67,7 +69,7 @@ Usage:
     # port <int> = 8080
     # url <str> = http://${server}:${port}
     env.get('url') # Output: 'http://127.0.0.1:8080'
-
+```
 '''
 
 from typing import Any, Callable, Optional, Union
@@ -109,9 +111,16 @@ class Envist:
     Envist is a simple .env file parser for Python. It's a single file module with no dependencies.
     '''
 
-    def __init__(self, path: str = '.env') -> None:
+    def __init__(self, path: str = '.env', accept_empty: bool= False) -> None:
+        """Constructor for `Envist`
+
+        Args:
+            path (str, optional): Path to file containing environment variables. Defaults to '.env'.
+            accept_empty (bool, optional): Accept keys declared without values. Defaults to False.
+        """
         self.path: str = path
         self.env: dict[str, str] = {}
+        self.accept_empty = accept_empty
         self.__load_env()
 
     def __load_env(self) -> dict:
@@ -126,23 +135,39 @@ class Envist:
             try:
                 for line in _lines:
                     try:
+                        pattern = (
+                            r'(.+?)\s*<\s*(.+?)\s*>?\s*=\s*(.*)'
+                            if self.accept_empty
+                            else r'(.+?)\s*<\s*(.+?)\s*>?\s*=\s*(.+)'
+                        )
                         key, cast, value = re.search(
-                            r'(.+?)\s*<\s*(.+?)\s*>?\s*=\s*(.+)', line
+                            pattern, line
                         ).groups()
                     except AttributeError:
-                        key, value = re.search(
-                            (r'(.+?)\s*=\s*(.+)'), line).groups()
+                        pattern = (
+                            r'(.+?)\s*=\s*(.*)'
+                            if self.accept_empty
+                            else r'(.+?)\s*=\s*(.+)'
+                        )
+                        key, value = re.search(pattern, line).groups()
                         cast = None
 
                     if self.__is_variable(value):
                         value = self.__resolve_variable(value)
 
-                    if cast:
-                        value = self.__resolve_type_cast(value, cast)
+                    if bool(value):
+                        if cast:
+                            value = self.__resolve_type_cast(value, cast)
+                        self.env[key] = value
+                        # OS environment variable is always string
+                        os.environ[key] = str(value)
+                    else:
+                        # Key is declared without value e.g key =
+                        # Set the value to None
 
-                    self.env[key] = value
-                    # OS environment variable is always string
-                    os.environ[key] = str(value)
+                        self.env[key] = None
+                        # OS environment variable is always string
+                        os.environ[key] = ''
 
             except ValueError as exception:
                 raise EnvistParseError(
