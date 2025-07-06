@@ -6,10 +6,10 @@ from typing import Any, Callable, Dict
 from typing import List as ListType
 from typing import Optional, Union
 
+from ..logger import logger
 from ..utils.file_handler import FileHandler
 from ..utils.type_casters import TypeCaster
 from ..validators.env_validator import EnvValidator
-from ..logger import logger
 from .exceptions import (
     EnvistCastError,
     EnvistParseError,
@@ -51,18 +51,20 @@ class Envist:
         try:
             # Read and filter file lines, preserving whitespace for string type annotations
             raw_lines = self._file_handler.read_file(self._path)
-            clean_lines = self._file_handler.filter_lines(raw_lines, preserve_whitespace=True)
+            clean_lines = self._file_handler.filter_lines(
+                raw_lines, preserve_whitespace=True
+            )
 
             # First pass: Parse all lines and store raw values
             raw_env = {}
             cast_types = {}
-            
+
             for line_num, line in enumerate(clean_lines, 1):
                 try:
                     key, value, cast_type = self._validator.parse_line_with_cast(
                         line, self._accept_empty
                     )
-                    
+
                     raw_env[key] = value
                     if cast_type:
                         cast_types[key] = cast_type
@@ -81,7 +83,7 @@ class Envist:
 
                     # Handle values based on accept_empty setting and type casting
                     cast_type = cast_types.get(key)
-                    
+
                     if value is not None and value:  # Non-empty value
                         # Apply type casting only if auto_cast is enabled AND cast_type is specified
                         if self._auto_cast and cast_type:
@@ -91,22 +93,28 @@ class Envist:
                         self._env[key] = value
                         # OS environment variable is always string
                         os.environ[key] = str(value) if value is not None else ""
-                    elif value is not None and self._accept_empty:  # Empty string case with accept_empty=True
+                    elif (
+                        value is not None and self._accept_empty
+                    ):  # Empty string case with accept_empty=True
                         # For empty values with type casting, try to create empty collections
                         if self._auto_cast and cast_type:
                             try:
                                 # Try to cast empty string to get default empty value for the type
                                 value = self._type_caster.cast_value("", cast_type)
                                 self._env[key] = value
-                                os.environ[key] = str(value) if value is not None else ""
+                                os.environ[key] = (
+                                    str(value) if value is not None else ""
+                                )
                             except Exception as e:
                                 # Re-raise casting errors
-                                raise EnvistCastError(f"Failed to cast empty value for '{key}' to type '{cast_type}': {e}")
+                                raise EnvistCastError(
+                                    f"Failed to cast empty value for '{key}' to type '{cast_type}': {e}"
+                                )
                         else:
                             # Store as None when empty and accept_empty=True (no type casting)
                             self._env[key] = None
                             os.environ[key] = ""
-                    elif value is not None:  # Empty string case with accept_empty=False  
+                    elif value is not None:  # Empty string case with accept_empty=False
                         # For keys declared without value (value=""), store as None
                         if not value:  # Empty string
                             self._env[key] = None
@@ -126,9 +134,11 @@ class Envist:
                     raise EnvistParseError(f"Error processing variable '{key}': {e}")
 
             logger.log_env_parse(self._path, len(raw_env))
-            
+
         except Exception as e:
-            if not isinstance(e, (EnvistParseError, EnvistCastError, FileNotFoundError)):
+            if not isinstance(
+                e, (EnvistParseError, EnvistCastError, FileNotFoundError)
+            ):
                 raise EnvistParseError(f"Unexpected error loading env file: {e}")
             raise
 
@@ -294,7 +304,9 @@ class Envist:
             self._env.clear()
             logger.info("Unset all environment variables")
 
-    def save(self, pretty: bool = False, sort_keys: bool = False, example_file: bool = False) -> None:
+    def save(
+        self, pretty: bool = False, sort_keys: bool = False, example_file: bool = False
+    ) -> None:
         """Save updated environment variables to file
 
         Args:

@@ -87,8 +87,18 @@ class TypeCaster:
             # Simple type - validate it's supported
             simple_type = type_str.lower()
             supported_types = {
-                "int", "float", "bool", "str", "list", "array", "dict", 
-                "tuple", "set", "csv", "comma_separated", "json"
+                "int",
+                "float",
+                "bool",
+                "str",
+                "list",
+                "array",
+                "dict",
+                "tuple",
+                "set",
+                "csv",
+                "comma_separated",
+                "json",
             }
             if simple_type not in supported_types:
                 raise EnvistCastError(f"Unsupported type: {simple_type}")
@@ -98,7 +108,7 @@ class TypeCaster:
         """Split type arguments respecting nested brackets"""
         if not args_str or not args_str.strip():
             return []
-            
+
         parts = []
         current = ""
         bracket_count = 0
@@ -127,7 +137,11 @@ class TypeCaster:
         base_type = type_info["type"]
 
         # Check for unsupported nested types first
-        if "inner_types" in type_info or "inner_type" in type_info or "key_type" in type_info:
+        if (
+            "inner_types" in type_info
+            or "inner_type" in type_info
+            or "key_type" in type_info
+        ):
             # This is a nested type, check if base type is supported for nesting
             supported_nested_types = {"list", "set", "tuple", "dict"}
             if base_type not in supported_nested_types:
@@ -462,39 +476,39 @@ class TypeCaster:
         """Parse bracketed list notation like [1,2,3] or [[1,2],[3,4]]"""
         if not isinstance(value, str) or not value.strip():
             return []
-            
+
         value = value.strip()
-        
+
         # Simple case: no brackets, just return as is
-        if not (value.startswith('[') and value.endswith(']')):
+        if not (value.startswith("[") and value.endswith("]")):
             return [value]
-            
+
         # Remove outer brackets
         inner = value[1:-1].strip()
         if not inner:
             return []
-            
+
         # Check if this is a nested list
-        if inner.startswith('[') and ']' in inner:
+        if inner.startswith("[") and "]" in inner:
             return self._parse_nested_bracket_structure(inner)
         else:
             # Simple list
-            return self._smart_split(inner, ',')
-    
+            return self._smart_split(inner, ",")
+
     def _parse_nested_bracket_structure(self, value: str) -> List[List[Any]]:
         """Parse complex nested bracket structures"""
         if not value:
             return []
-            
+
         result = []
         current_item = ""
         bracket_count = 0
-        
+
         for char in value:
-            if char == '[':
+            if char == "[":
                 bracket_count += 1
                 current_item += char
-            elif char == ']':
+            elif char == "]":
                 bracket_count -= 1
                 current_item += char
                 if bracket_count == 0:
@@ -502,145 +516,150 @@ class TypeCaster:
                     parsed_item = self._parse_bracket_list(current_item)
                     result.append(parsed_item)
                     current_item = ""
-            elif char == ',' and bracket_count == 0:
+            elif char == "," and bracket_count == 0:
                 # Item separator at top level
                 if current_item.strip():
                     result.append([current_item.strip()])
                 current_item = ""
             else:
                 current_item += char
-                
+
         # Handle remaining item
         if current_item.strip():
-            if current_item.startswith('[') and current_item.endswith(']'):
+            if current_item.startswith("[") and current_item.endswith("]"):
                 result.append(self._parse_bracket_list(current_item))
             else:
                 result.append([current_item.strip()])
-                
+
         return result
-    
+
     def _parse_dict_value(self, value: str) -> Any:
         """Parse dictionary values that could be lists, objects, or simple values"""
         value = value.strip()
-        
+
         # List value like [1,2,3]
-        if value.startswith('[') and value.endswith(']'):
+        if value.startswith("[") and value.endswith("]"):
             return self._parse_bracket_list(value)
-        
-        # JSON object value like {"key":"value"}  
-        if value.startswith('{') and value.endswith('}'):
+
+        # JSON object value like {"key":"value"}
+        if value.startswith("{") and value.endswith("}"):
             try:
                 return json.loads(value)
             except:
                 return value
-                
+
         # Simple value - remove quotes if present
         return self._remove_quotes(value)
-    
+
     def _smart_split_dict_pairs(self, value: str) -> List[str]:
         """Split dictionary pairs accounting for nested structures"""
         if not value:
             return []
-            
+
         pairs = []
         current_pair = ""
         bracket_count = 0
         brace_count = 0
-        
+
         for char in value:
-            if char == '[':
+            if char == "[":
                 bracket_count += 1
                 current_pair += char
-            elif char == ']':
-                bracket_count -= 1  
+            elif char == "]":
+                bracket_count -= 1
                 current_pair += char
-            elif char == '{':
+            elif char == "{":
                 brace_count += 1
                 current_pair += char
-            elif char == '}':
+            elif char == "}":
                 brace_count -= 1
                 current_pair += char
-            elif char == ',' and bracket_count == 0 and brace_count == 0:
+            elif char == "," and bracket_count == 0 and brace_count == 0:
                 # Top-level separator
                 if current_pair.strip():
                     pairs.append(current_pair.strip())
                 current_pair = ""
             else:
                 current_pair += char
-                
+
         # Handle remaining pair
         if current_pair.strip():
             pairs.append(current_pair.strip())
-            
+
         return pairs
 
     # Public method aliases that tests expect
     def parse_type_syntax(self, type_str: str) -> Dict[str, Any]:
         """Public method for parsing type syntax (test compatibility)"""
         return self._parse_type_syntax(type_str)
-    
+
     def split_type_args(self, args_str: str) -> List[str]:
         """Public method for splitting type arguments (test compatibility)"""
         return self._split_type_args(args_str)
-    
-    def apply_type_casting(self, value: Any, type_info: Union[Dict[str, Any], tuple]) -> Any:
+
+    def apply_type_casting(
+        self, value: Any, type_info: Union[Dict[str, Any], tuple]
+    ) -> Any:
         """Public method for applying type casting (test compatibility)"""
         if isinstance(type_info, tuple):
             # Handle tuple format (type_name, inner_types)
             type_name, inner_types = type_info
             if type_name in ("list", "set", "tuple") and inner_types:
-                type_dict = {"type": type_name, "inner_type": {"type": inner_types[0] if inner_types else "str"}}
+                type_dict = {
+                    "type": type_name,
+                    "inner_type": {"type": inner_types[0] if inner_types else "str"},
+                }
             elif type_name == "dict" and len(inner_types) >= 2:
                 type_dict = {
                     "type": type_name,
                     "key_type": {"type": inner_types[0]},
-                    "value_type": {"type": inner_types[1]}
+                    "value_type": {"type": inner_types[1]},
                 }
             else:
                 type_dict = {"type": type_name}
             return self._apply_type_casting(value, type_dict)
         return self._apply_type_casting(value, type_info)
-    
+
     def cast_to_smart_list(self, value: Any) -> list:
         """Public method for smart list casting (test compatibility)"""
         return self._cast_to_smart_list(value)
-    
+
     def cast_to_smart_dict(self, value: Any) -> dict:
         """Public method for smart dict casting (test compatibility)"""
         return self._cast_to_smart_dict(value)
-    
+
     def parse_nested_list(self, value: str) -> list:
         """Public method for parsing nested lists (test compatibility)"""
         return self._parse_nested_list(value)
-    
+
     def parse_bracket_list(self, value: str) -> List[Any]:
         """Public method for parsing bracket lists (test compatibility)"""
         return self._parse_bracket_list(value)
-    
+
     def smart_split(self, text: str, delimiter: str) -> List[str]:
         """Public method for smart splitting (test compatibility)"""
         return self._smart_split(text, delimiter)
-    
+
     def smart_split_dict_pairs(self, value: str) -> List[str]:
         """Public method for smart splitting dict pairs (test compatibility)"""
         return self._smart_split_dict_pairs(value)
-    
+
     def remove_quotes(self, value: str) -> str:
         """Public method for removing quotes (test compatibility)"""
         return self._remove_quotes(value)
-    
+
     def cast_to_csv(self, value: str) -> list:
         """Public method for CSV casting (test compatibility)"""
         return self._cast_to_csv(value)
-    
+
     def cast_to_json(self, value: str) -> Any:
         """Public method for JSON casting (test compatibility)"""
         return self._cast_to_json(value)
-    
+
     def cast_to_list(self, value: str) -> list:
         """Public method for list casting (test compatibility)"""
         return self._cast_to_smart_list(value)
-    
+
     def parse_dict_value(self, value: str) -> Any:
         """Public method for parsing dict values (test compatibility)"""
         return self._parse_dict_value(value)

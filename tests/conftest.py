@@ -3,14 +3,15 @@
 import os
 import tempfile
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any, Dict
+
 import pytest
 
 
 @pytest.fixture
 def temp_env_file():
     """Create a temporary .env file for testing"""
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.env', delete=False) as f:
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".env", delete=False) as f:
         yield f.name
     # Cleanup
     if os.path.exists(f.name):
@@ -75,7 +76,7 @@ UNICODE_VALUE=café_naïve"""
 @pytest.fixture
 def env_file_with_content(temp_env_file, sample_env_content):
     """Create a temporary .env file with sample content"""
-    with open(temp_env_file, 'w', encoding='utf-8') as f:
+    with open(temp_env_file, "w", encoding="utf-8") as f:
         f.write(sample_env_content)
     return temp_env_file
 
@@ -83,7 +84,7 @@ def env_file_with_content(temp_env_file, sample_env_content):
 @pytest.fixture
 def complex_env_file(temp_env_file, complex_env_content):
     """Create a temporary .env file with complex content"""
-    with open(temp_env_file, 'w', encoding='utf-8') as f:
+    with open(temp_env_file, "w", encoding="utf-8") as f:
         f.write(complex_env_content)
     return temp_env_file
 
@@ -91,7 +92,7 @@ def complex_env_file(temp_env_file, complex_env_content):
 @pytest.fixture
 def empty_env_file(temp_env_file):
     """Create an empty .env file"""
-    with open(temp_env_file, 'w', encoding='utf-8') as f:
+    with open(temp_env_file, "w", encoding="utf-8") as f:
         f.write("")
     return temp_env_file
 
@@ -99,7 +100,7 @@ def empty_env_file(temp_env_file):
 @pytest.fixture
 def invalid_env_file(temp_env_file):
     """Create a .env file with invalid syntax"""
-    with open(temp_env_file, 'w', encoding='utf-8') as f:
+    with open(temp_env_file, "w", encoding="utf-8") as f:
         f.write("""VALID_KEY=value
 INVALID LINE WITHOUT EQUALS
 ANOTHER_VALID=test
@@ -122,12 +123,12 @@ def cleanup_env_vars():
 def mock_env_data():
     """Mock environment data for testing"""
     return {
-        'STRING_VAR': 'test_value',
-        'INT_VAR': 42,
-        'FLOAT_VAR': 3.14,
-        'BOOL_VAR': True,
-        'LIST_VAR': [1, 2, 3],
-        'DICT_VAR': {'key': 'value'},
-        'NESTED_LIST': [[1, 2], [3, 4]],
-        'NESTED_DICT': {'outer': {'inner': 'value'}}
+        "STRING_VAR": "test_value",
+        "INT_VAR": 42,
+        "FLOAT_VAR": 3.14,
+        "BOOL_VAR": True,
+        "LIST_VAR": [1, 2, 3],
+        "DICT_VAR": {"key": "value"},
+        "NESTED_LIST": [[1, 2], [3, 4]],
+        "NESTED_DICT": {"outer": {"inner": "value"}},
     }

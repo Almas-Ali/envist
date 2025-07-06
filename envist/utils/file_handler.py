@@ -48,7 +48,7 @@ class FileHandler:
             filtered = []
             for line in lines:
                 # Remove only newline characters
-                line = line.rstrip('\r\n')
+                line = line.rstrip("\r\n")
                 # Check if line should be included (strip for checking but keep original)
                 stripped = line.strip()
                 if stripped and not stripped.startswith("#"):

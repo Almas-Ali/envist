@@ -42,9 +42,9 @@ custom_logger.error("Error message test")
 
 # Force flush all handlers to ensure writes
 for handler in custom_logger.get_handlers():
-    if hasattr(handler, 'flush'):
+    if hasattr(handler, "flush"):
         handler.flush()
-    if hasattr(handler, 'close'):
+    if hasattr(handler, "close"):
         # Don't close stream handlers as it might close stdout
         if not isinstance(handler, logging.StreamHandler):
             handler.close()
