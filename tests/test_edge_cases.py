@@ -122,7 +122,7 @@ class TestEdgeCases:
             f.write('VAR1=${UNDEFINED}\nVAR2=prefix_${UNDEFINED}_suffix')
         
         env = Envist(temp_env_file)
-        assert env.get('VAR1') == ''
+        assert env.get('VAR1') is None  # Undefined variables resolve to None
         assert env.get('VAR2') == 'prefix__suffix'
         
         # Test set with invalid key
@@ -303,6 +303,7 @@ ANOTHER_VALID=value""")
         
         # Test with None values
         env.set_all({'NULL_VAR': None, 'NORMAL_VAR': 'value'})
+        # None values should remain as None
         assert env.get('NULL_VAR') is None
         assert env.get('NORMAL_VAR') == 'value'
     

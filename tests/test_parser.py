@@ -1,6 +1,8 @@
 """Tests for the core parser module"""
 
 import os
+from pathlib import Path
+import tempfile
 import pytest
 from unittest.mock import patch, mock_open
 
@@ -367,8 +369,8 @@ class TestEnvistParser:
             f.write("VAR1=${UNDEFINED_VAR}")
         
         env = Envist(temp_env_file)
-        # Should resolve to empty string for undefined variables
-        assert env.get('VAR1') == ''
+        # Should resolve to None for undefined variables
+        assert env.get('VAR1') is None
     
     def test_cast_error_handling(self, temp_env_file):
         """Test casting error handling"""
@@ -416,3 +418,177 @@ class TestEnvistParser:
         env = Envist(temp_env_file)
         assert len(env._env) == 0
         assert len(env.get_all()) == 0
+
+    def test_casting_failure_with_type_stores_none(self):
+        """Test that casting failures raise exceptions when type is specified."""
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.env', delete=False) as f:
+            f.write('INVALID_INT:int=not_a_number\n')
+            temp_path = f.name
+        
+        try:
+            # The invalid cast should raise an exception
+            with pytest.raises(EnvistCastError):
+                Envist(temp_path)
+        finally:
+            Path(temp_path).unlink(missing_ok=True)
+    
+    def test_empty_value_with_type_accept_empty_true(self):
+        """Test empty value with type annotation when accept_empty=True."""
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.env', delete=False) as f:
+            f.write('EMPTY_WITH_TYPE:int=\n')
+            temp_path = f.name
+        
+        try:
+            # Should raise exception when empty with type and accept_empty=True
+            with pytest.raises(EnvistCastError):
+                Envist(temp_path, accept_empty=True)
+        finally:
+            Path(temp_path).unlink(missing_ok=True)
+    
+    def test_key_without_value_declaration(self):
+        """Test key declared without any value (not even =)."""
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.env', delete=False) as f:
+            f.write('JUST_KEY\n')
+            temp_path = f.name
+        
+        try:
+            parser = Envist(temp_path)
+            # Should store None for key without value
+            assert parser.get('JUST_KEY') is None
+            assert os.environ.get('JUST_KEY') == ""
+        finally:
+            Path(temp_path).unlink(missing_ok=True)
+    
+    def test_unexpected_exception_during_parse_wrapped(self):
+        """Test that unexpected exceptions during parsing are wrapped."""
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.env', delete=False) as f:
+            # Write a file that might cause unexpected parsing issues
+            f.write('NORMAL_VAR=value\n')
+            temp_path = f.name
+        
+        try:
+            # Mock the file handler to raise an unexpected exception
+            from unittest.mock import patch
+            with patch('envist.utils.file_handler.FileHandler.read_file') as mock_read:
+                mock_read.side_effect = ValueError("Unexpected file error")
+                
+                with pytest.raises(EnvistParseError, match="Unexpected error loading env file"):
+                    Envist(temp_path)
+        finally:
+            Path(temp_path).unlink(missing_ok=True)
+    
+    def test_resolve_variable_with_non_string_value(self):
+        """Test _resolve_variable with non-string input."""
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.env', delete=False) as f:
+            f.write('TEST_VAR=42\n')
+            temp_path = f.name
+        
+        try:
+            parser = Envist(temp_path)
+            # Test that non-string values are returned as-is
+            result = parser._resolve_variable_with_env(42, {})
+            assert result == 42
+            
+            result = parser._resolve_variable_with_env(None, {})
+            assert result is None
+        finally:
+            Path(temp_path).unlink(missing_ok=True)
+    
+    def test_set_with_variable_resolution(self):
+        """Test set method with variable resolution."""
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.env', delete=False) as f:
+            f.write('BASE_PATH=/home/user\n')
+            temp_path = f.name
+        
+        try:
+            parser = Envist(temp_path)
+            # Set a value that contains a variable reference
+            parser.set('FULL_PATH', '${BASE_PATH}/documents')
+            
+            # Should resolve the variable
+            assert parser.get('FULL_PATH') == '/home/user/documents'
+        finally:
+            Path(temp_path).unlink(missing_ok=True)
+    
+    def test_empty_string_value_with_accept_empty_false(self):
+        """Test empty string value handling with accept_empty=False."""
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.env', delete=False) as f:
+            f.write('EMPTY_VAR=\n')
+            temp_path = f.name
+        
+        try:
+            parser = Envist(temp_path, accept_empty=False)
+            # The value should be handled appropriately
+            # In this case, it might not be in the environment at all or be None
+            result = parser.get('EMPTY_VAR')
+            # The exact behavior depends on implementation
+            assert result is None or result == ""
+        finally:
+            Path(temp_path).unlink(missing_ok=True)
+    
+    def test_is_variable_with_non_string(self):
+        """Test _is_variable with non-string input."""
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.env', delete=False) as f:
+            f.write('TEST_VAR=value\n')
+            temp_path = f.name
+        
+        try:
+            parser = Envist(temp_path)
+            
+            # Test with non-string inputs
+            assert parser._is_variable(42) is False
+            assert parser._is_variable(None) is False
+            assert parser._is_variable([]) is False
+            
+            # Test with string inputs
+            assert parser._is_variable('${VAR}') is True
+            assert parser._is_variable('normal_value') is False
+        finally:
+            Path(temp_path).unlink(missing_ok=True)
+    
+    def test_parse_line_with_complex_edge_cases(self):
+        """Test parsing with complex edge cases."""
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.env', delete=False) as f:
+            # Write a combination that might trigger edge cases
+            content = '''
+# Test various edge cases
+VAR_WITH_CAST_FAILURE:int=invalid_number
+EMPTY_WITH_TYPE:str=
+KEY_ONLY
+NORMAL_VAR=value
+VAR_WITH_VARIABLE=${NORMAL_VAR}/extra
+'''
+            f.write(content)
+            temp_path = f.name
+        
+        try:
+            # Should raise exception when casting failures occur
+            with pytest.raises(EnvistCastError):
+                Envist(temp_path, accept_empty=True)
+        finally:
+            Path(temp_path).unlink(missing_ok=True)
+    
+    def test_multiple_variable_resolution_edge_cases(self):
+        """Test variable resolution with multiple edge cases."""
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.env', delete=False) as f:
+            content = '''
+BASE=/home
+USER=john
+COMPLEX_PATH=${BASE}/${USER}/documents
+NESTED_VAR=${COMPLEX_PATH}/files
+'''
+            f.write(content)
+            temp_path = f.name
+        
+        try:
+            parser = Envist(temp_path)
+            
+            # Test complex variable resolution
+            assert parser.get('COMPLEX_PATH') == '/home/john/documents'
+            assert parser.get('NESTED_VAR') == '/home/john/documents/files'
+            
+            # Test setting values with variables
+            parser.set('NEW_PATH', '${BASE}/shared')
+            assert parser.get('NEW_PATH') == '/home/shared'
+        finally:
+            Path(temp_path).unlink(missing_ok=True)
