@@ -9,6 +9,7 @@ from typing import Optional, Union
 from ..utils.file_handler import FileHandler
 from ..utils.type_casters import TypeCaster
 from ..validators.env_validator import EnvValidator
+from ..logger import logger
 from .exceptions import (
     EnvistCastError,
     EnvistParseError,
@@ -42,6 +43,7 @@ class Envist:
         self._validator = EnvValidator()
         self._type_caster = TypeCaster()
         self._auto_cast: bool = auto_cast
+        logger.info(f"Initializing Envist with file: {path}")
         self._load_env()
 
     def _load_env(self) -> None:
@@ -97,30 +99,34 @@ class Envist:
                                 value = self._type_caster.cast_value("", cast_type)
                                 self._env[key] = value
                                 os.environ[key] = str(value) if value is not None else ""
-                            except:
-                                # If casting fails, store as None
-                                self._env[key] = None
-                                os.environ[key] = ""
+                            except Exception as e:
+                                # Re-raise casting errors
+                                raise EnvistCastError(f"Failed to cast empty value for '{key}' to type '{cast_type}': {e}")
                         else:
                             # Store as None when empty and accept_empty=True (no type casting)
                             self._env[key] = None
                             os.environ[key] = ""
                     elif value is not None:  # Empty string case with accept_empty=False  
-                        # This shouldn't happen since we skip these during parsing
-                        # But if it does, store empty string
-                        self._env[key] = value  # This will be ""
-                        os.environ[key] = ""
+                        # For keys declared without value (value=""), store as None
+                        if not value:  # Empty string
+                            self._env[key] = None
+                            os.environ[key] = ""
+                        else:
+                            self._env[key] = value
+                            os.environ[key] = value
                     else:
                         # Key declared without value
                         self._env[key] = None
                         os.environ[key] = ""
 
-                except EnvistCastError:
-                    # Let cast errors bubble up directly
-                    raise
+                except EnvistCastError as e:
+                    # Re-raise casting errors instead of silently handling them
+                    raise e
                 except Exception as e:
                     raise EnvistParseError(f"Error processing variable '{key}': {e}")
 
+            logger.log_env_parse(self._path, len(raw_env))
+            
         except Exception as e:
             if not isinstance(e, (EnvistParseError, EnvistCastError, FileNotFoundError)):
                 raise EnvistParseError(f"Unexpected error loading env file: {e}")
@@ -240,6 +246,7 @@ class Envist:
 
         self._env[key] = value
         os.environ[key] = str(value) if value is not None else ""
+        logger.info(f"Set environment variable '{key}' = '{value}'")
         return self._env[key]
 
     def set_all(self, data: Dict[str, Any]) -> None:
@@ -265,6 +272,7 @@ class Envist:
 
         self._env.pop(key, None)
         os.environ.pop(key, None)
+        logger.info(f"Unset environment variable '{key}'")
 
     def unset_all(self, data_list: Optional[ListType[str]] = None) -> None:
         """Unset multiple environment variables
@@ -278,30 +286,44 @@ class Envist:
                     raise EnvistValueError(f'"{key}" not found in env')
                 self._env.pop(key, None)
                 os.environ.pop(key, None)
+                logger.info(f"Unset environment variable '{key}'")
         else:
             # Clear all environment variables
             for key in list(self._env.keys()):
                 os.environ.pop(key, None)
             self._env.clear()
+            logger.info("Unset all environment variables")
 
-    def save(self, pretty: bool = False, sort_keys: bool = False) -> None:
+    def save(self, pretty: bool = False, sort_keys: bool = False, example_file: bool = False) -> None:
         """Save updated environment variables to file
 
         Args:
             pretty: Whether to use pretty formatting with spaces
             sort_keys: Whether to sort keys alphabetically
+            example_file: Whether to create an .env.example file
         """
         env_to_save = self._env
 
         if sort_keys:
             env_to_save = dict(sorted(self._env.items()))
 
+        # Save the main env file
         with open(self._path, "w", encoding="utf-8") as file:
             for key, value in env_to_save.items():
                 if pretty:
                     file.write(f"{key} = {value}\n")
                 else:
                     file.write(f"{key}={value}\n")
+
+        # Optionally save an example file with empty values
+        if example_file:
+            example_path = os.path.splitext(self._path)[0] + ".example"
+            with open(example_path, "w", encoding="utf-8") as example_file_obj:
+                for key in env_to_save.keys():
+                    if pretty:
+                        example_file_obj.write(f"{key} = \n")
+                    else:
+                        example_file_obj.write(f"{key}=\n")
 
     def reload(self) -> None:
         """Reload environment variables from file"""
