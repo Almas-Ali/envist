@@ -8,4 +8,7 @@ envist.egg-info/
 .coverage
 coverage.xml
 TODO.md
-Makefile
+htmlcov/
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
