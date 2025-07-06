@@ -2,7 +2,6 @@ import os
 
 from envist import Envist
 
-
 env = Envist(
     path=".env.example",
     accept_empty=True,
