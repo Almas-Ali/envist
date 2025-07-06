@@ -5,3 +5,10 @@ main.py
 build/
 dist/
 envist.egg-info/
+.coverage
+coverage.xml
+TODO.md
+htmlcov/
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
