@@ -84,11 +84,21 @@ class TypeCaster:
             # Unmatched brackets are invalid
             raise EnvistCastError(f"Invalid type syntax: {type_str}")
         else:
-            # Simple type
-            return {"type": type_str.lower()}
+            # Simple type - validate it's supported
+            simple_type = type_str.lower()
+            supported_types = {
+                "int", "float", "bool", "str", "list", "array", "dict", 
+                "tuple", "set", "csv", "comma_separated", "json"
+            }
+            if simple_type not in supported_types:
+                raise EnvistCastError(f"Unsupported type: {simple_type}")
+            return {"type": simple_type}
 
     def _split_type_args(self, args_str: str) -> List[str]:
         """Split type arguments respecting nested brackets"""
+        if not args_str or not args_str.strip():
+            return []
+            
         parts = []
         current = ""
         bracket_count = 0
@@ -101,12 +111,13 @@ class TypeCaster:
                 bracket_count -= 1
                 current += char
             elif char == "," and bracket_count == 0:
-                parts.append(current.strip())
+                if current.strip():  # Only add non-empty parts
+                    parts.append(current.strip())
                 current = ""
             else:
                 current += char
 
-        if current:
+        if current.strip():  # Only add non-empty parts
             parts.append(current.strip())
 
         return parts
@@ -114,6 +125,13 @@ class TypeCaster:
     def _apply_type_casting(self, value: Any, type_info: Dict[str, Any]) -> Any:
         """Apply type casting based on parsed type information"""
         base_type = type_info["type"]
+
+        # Check for unsupported nested types first
+        if "inner_types" in type_info or "inner_type" in type_info or "key_type" in type_info:
+            # This is a nested type, check if base type is supported for nesting
+            supported_nested_types = {"list", "set", "tuple", "dict"}
+            if base_type not in supported_nested_types:
+                raise EnvistCastError(f"Unsupported nested type: {base_type}")
 
         # Handle nested types
         if "inner_type" in type_info:
@@ -556,6 +574,77 @@ class TypeCaster:
             
         return pairs
 
+    # Public method aliases that tests expect
+    def parse_type_syntax(self, type_str: str) -> Dict[str, Any]:
+        """Public method for parsing type syntax (test compatibility)"""
+        return self._parse_type_syntax(type_str)
+    
+    def split_type_args(self, args_str: str) -> List[str]:
+        """Public method for splitting type arguments (test compatibility)"""
+        return self._split_type_args(args_str)
+    
+    def apply_type_casting(self, value: Any, type_info: Union[Dict[str, Any], tuple]) -> Any:
+        """Public method for applying type casting (test compatibility)"""
+        if isinstance(type_info, tuple):
+            # Handle tuple format (type_name, inner_types)
+            type_name, inner_types = type_info
+            if type_name in ("list", "set", "tuple") and inner_types:
+                type_dict = {"type": type_name, "inner_type": {"type": inner_types[0] if inner_types else "str"}}
+            elif type_name == "dict" and len(inner_types) >= 2:
+                type_dict = {
+                    "type": type_name,
+                    "key_type": {"type": inner_types[0]},
+                    "value_type": {"type": inner_types[1]}
+                }
+            else:
+                type_dict = {"type": type_name}
+            return self._apply_type_casting(value, type_dict)
+        return self._apply_type_casting(value, type_info)
+    
+    def cast_to_smart_list(self, value: Any) -> list:
+        """Public method for smart list casting (test compatibility)"""
+        return self._cast_to_smart_list(value)
+    
+    def cast_to_smart_dict(self, value: Any) -> dict:
+        """Public method for smart dict casting (test compatibility)"""
+        return self._cast_to_smart_dict(value)
+    
+    def parse_nested_list(self, value: str) -> list:
+        """Public method for parsing nested lists (test compatibility)"""
+        return self._parse_nested_list(value)
+    
+    def parse_bracket_list(self, value: str) -> List[Any]:
+        """Public method for parsing bracket lists (test compatibility)"""
+        return self._parse_bracket_list(value)
+    
+    def smart_split(self, text: str, delimiter: str) -> List[str]:
+        """Public method for smart splitting (test compatibility)"""
+        return self._smart_split(text, delimiter)
+    
+    def smart_split_dict_pairs(self, value: str) -> List[str]:
+        """Public method for smart splitting dict pairs (test compatibility)"""
+        return self._smart_split_dict_pairs(value)
+    
+    def remove_quotes(self, value: str) -> str:
+        """Public method for removing quotes (test compatibility)"""
+        return self._remove_quotes(value)
+    
+    def cast_to_csv(self, value: str) -> list:
+        """Public method for CSV casting (test compatibility)"""
+        return self._cast_to_csv(value)
+    
+    def cast_to_json(self, value: str) -> Any:
+        """Public method for JSON casting (test compatibility)"""
+        return self._cast_to_json(value)
+    
+    def cast_to_list(self, value: str) -> list:
+        """Public method for list casting (test compatibility)"""
+        return self._cast_to_smart_list(value)
+    
+    def parse_dict_value(self, value: str) -> Any:
+        """Public method for parsing dict values (test compatibility)"""
+        return self._parse_dict_value(value)
+
     # Keep the legacy methods for backward compatibility
     def _cast_to_list(self, value: str) -> list:
         """Cast string to list (legacy method)"""
@@ -582,3 +671,8 @@ class TypeCaster:
             return json.loads(value)
         except json.JSONDecodeError as e:
             raise EnvistCastError(f"Invalid JSON format: {e}")
+
+    # Legacy public method aliases for compatibility
+    def cast_to_dict(self, value: Any) -> dict:
+        """Legacy alias for _cast_to_smart_dict"""
+        return self._cast_to_smart_dict(value)

@@ -32,19 +32,34 @@ class EnvValidator:
         if not line or not line.strip():
             raise EnvistParseError("Empty or whitespace-only line")
             
-        # Check for lines without equals sign
-        if '=' not in line:
-            raise EnvistParseError("Line must contain '=' separator")
-            
         # Check for lines that start with equals (no key)
         if line.strip().startswith('='):
             raise EnvistParseError("Line cannot start with '=' (missing key)")
+            
+        # Handle lines without equals sign
+        if '=' not in line:
+            # Only accept as key with empty value if line is just whitespace or a simple identifier
+            key = line.strip()
+            if not key:
+                raise EnvistParseError("Key cannot be empty")
+            
+            # Check if it looks like a valid environment variable key
+            # Only allow simple identifiers without spaces for keys without values
+            if ' ' in key or not key.replace('_', '').replace('-', '').isalnum():
+                raise EnvistParseError(f"Invalid line format: '{line.strip()}' (missing '=' assignment)")
+            
+            # Return empty value for keys without equals
+            return key, "", None
         
         # Parse type annotations with balanced brackets
         # Look for pattern: KEY<...>=value where <...> contains balanced brackets
         # Use regex to match the proper pattern first - preserve whitespace in value for str types
         type_annotation_pattern = r"^([^<>=]+)<([^<>]+(?:<[^<>]*>[^<>]*)*)>=(.*)$"
         type_match = re.match(type_annotation_pattern, line)
+        
+        # Also check for colon syntax: KEY:type=value
+        colon_annotation_pattern = r"^([^:=]+):([^:=]+)=(.*)$"
+        colon_match = re.match(colon_annotation_pattern, line)
         
         if type_match:
             key, cast_type, value = type_match.groups()
@@ -62,6 +77,32 @@ class EnvValidator:
             
             # Validate nested type syntax
             if not EnvValidator._validate_type_syntax(cast_type):
+                raise EnvistParseError(f"Invalid type syntax: {cast_type}")
+            
+            # Remove quotes from values
+            value = EnvValidator._remove_quotes(value)
+            
+            # Check empty value constraint
+            if not accept_empty and not value:
+                raise EnvistParseError(f"Empty value")
+            
+            return key, value, cast_type
+        elif colon_match:
+            key, cast_type, value = colon_match.groups()
+            key = key.strip()
+            cast_type = cast_type.strip()
+            # For string types, preserve whitespace in value
+            if cast_type.lower() == 'str':
+                value = value if value else ""
+            else:
+                value = value.strip() if value else ""
+            
+            # Validate key format
+            if not key:
+                raise EnvistParseError("Key cannot be empty")
+            
+            # Validate type syntax (simpler validation for colon syntax)
+            if not cast_type or not cast_type.replace('_', '').isalnum():
                 raise EnvistParseError(f"Invalid type syntax: {cast_type}")
             
             # Remove quotes from values
@@ -272,3 +313,27 @@ class EnvValidator:
         """
         pattern = r"^[A-Za-z_][A-Za-z0-9_]*$"
         return bool(re.match(pattern, key))
+    
+    @staticmethod
+    def _validate_key_format(key: str) -> bool:
+        """Validate environment variable key format
+        
+        Args:
+            key: Key to validate
+            
+        Returns:
+            True if key format is valid, False otherwise
+        """
+        if not key:
+            return False
+            
+        # Key should start with letter or underscore
+        if not (key[0].isalpha() or key[0] == '_'):
+            return False
+            
+        # Key should only contain alphanumeric characters and underscores
+        for char in key:
+            if not (char.isalnum() or char == '_'):
+                return False
+                
+        return True
