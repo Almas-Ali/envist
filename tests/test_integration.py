@@ -264,9 +264,12 @@ SYMBOLS=!@#$%^&*()_+-=[]{}|;:,.<>?
 QUOTES_MIXED="single'quote'inside"
 
 # Whitespace edge cases
-LEADING_SPACES<str>=   value_with_spaces   
+LEADING_SPACES<str>=   value_without_spaces   
 TRAILING_TABS<str>=value	
 MIXED_WHITESPACE<str>=	  value  	
+
+# Inline comments
+INLINE_COMMENT=value # This should be ignored
 
 # Complex nesting
 DEEP_NESTED<list<list<list<int>>>>=[[1,2],[3,4]],[[5,6],[7,8]]
@@ -291,9 +294,12 @@ VERY_COMPLEX<dict<str, list<dict<str, int>>>>=group1=[{"a":1,"b":2}],group2=[{"c
         assert env.get("QUOTES_MIXED") == "single'quote'inside"
 
         # Test whitespace handling
-        assert env.get("LEADING_SPACES") == "   value_with_spaces   "
-        assert env.get("TRAILING_TABS") == "value\t"
-        assert env.get("MIXED_WHITESPACE") == "\t  value  \t"
+        assert env.get("LEADING_SPACES") == "value_without_spaces"
+        assert env.get("TRAILING_TABS") == "value"
+        assert env.get("MIXED_WHITESPACE") == "value"
+
+        # Test inline comments
+        assert env.get("INLINE_COMMENT") == "value"
 
         # Test complex nesting
         deep_nested = env.get("DEEP_NESTED")
