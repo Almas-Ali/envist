@@ -29,4 +29,11 @@ jobs:
           pytest tests/ \
             --cov=envist \
             --cov-report=term-missing \
-            --cov-fail-under=90
+            --cov-fail-under=90 \
+            --cov-branch \
+            --cov-report=xml
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}

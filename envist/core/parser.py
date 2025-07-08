@@ -65,6 +65,7 @@ class Envist:
                         line, self._accept_empty
                     )
 
+                    key, value = key.strip(), value.strip() # Strip whitespace
                     raw_env[key] = value
                     if cast_type:
                         cast_types[key] = cast_type
