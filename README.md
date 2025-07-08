@@ -12,6 +12,7 @@
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/envist)](https://pypi.org/project/envist)
 [![PyPI - License](https://img.shields.io/pypi/l/envist)](https://pypi.org/project/envist)
 [![Hits](https://hits.sh/github.com/Almas-Ali/envist.svg?label=Total%20hits&logo=dotenv)](https://github.com/Almas-Ali/envist "Total hits")
+[![Code Coverage](https://img.shields.io/codecov/c/github/Almas-Ali/envist)](https://codecov.io/gh/Almas-Ali/envist)
 [![Downloads](https://pepy.tech/badge/envist)](https://pepy.tech/project/envist)
 
 *Environment variables have never been this smart!* 
