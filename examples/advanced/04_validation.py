@@ -11,7 +11,6 @@ def validate_age(value: int) -> bool:
         raise ValueError("Age must be a positive integer.")
 
     print(f"Validating age: {value}")
-    return True
 
 
 @validator(env, "name")
@@ -22,7 +21,6 @@ def validate_name(value: str) -> bool:
         raise ValueError("Name cannot be empty.")
 
     print(f"Validating name: {value}")
-    return True
 
 
 @validator(env, "debug")
@@ -33,4 +31,3 @@ def validate_debug(value: bool) -> bool:
         raise ValueError("Debug must be a boolean.")
 
     print(f"Validating debug: {value}")
-    return True
