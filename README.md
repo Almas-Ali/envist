@@ -40,6 +40,7 @@ Created with ❤️ by [**Md. Almas Ali**](https://github.com/Almas-Ali)
 - [🏷️ Supported Data Types](#️-supported-data-types)
 - [🔧 Configuration](#-configuration)
 - [🛠️ Exception Handling](#exception-handling)
+- [🛡️ Environment Variable Validation](#-environment-variable-validation)
 - [📊 Logging](#-logging)
 - [🎯 Examples](#-examples)
 - [🤝 Contributing](#-contributing)
@@ -81,6 +82,7 @@ CONFIG <json> = {"timeout": 30, "retries": 3}
 🔄 **Backward Compatible** - Works with existing `.env` files  
 ⚡ **Zero Dependencies** - Lightweight and fast  
 🔧 **Full CRUD Operations** - Get, set, unset, and save variables  
+✅ **Environment Validation** - `@validator` decorator for custom validation rules  
 📝 **Built-in Logging** - Comprehensive debugging capabilities  
 
 ---
@@ -405,6 +407,30 @@ for key in env:
 | `__iter__()` | Iterate over keys | `for key in env:` |
 | `__repr__()` | String representation | `<Envist path=".env">` |
 
+### Decorator: `@validator`
+
+The `@validator` decorator provides environment variable validation at startup time.
+
+```python
+@validator(env: Envist, key: str) -> Callable[[Callable[[Any], bool]], bool]
+```
+
+**Parameters:**
+- `env` (Envist): The Envist instance to validate against
+- `key` (str): The environment variable key to validate
+
+**Usage:**
+```python
+@validator(env, "VARIABLE_NAME")
+def validate_variable(value: Any) -> bool:
+    """Validation logic here."""
+    if not meets_criteria(value):
+        raise ValueError("Validation failed")
+    return True
+```
+
+**Note:** The decorator uses an IIFE (Immediately Invoked Function Expression) pattern, so validation runs immediately when the decorator is applied.
+
 ---
 
 ## 🏷️ Supported Data Types
@@ -651,6 +677,100 @@ try:
 except EnvistValueError as e:
     print(f"Variable not found: {e}")
 ```
+
+---
+
+## 🔍 Environment Variable Validation
+
+Envist provides a powerful `@validator` decorator that allows you to define custom validation rules for your environment variables. This ensures your configuration values meet specific business requirements before your application starts.
+
+### The `@validator` Decorator
+
+The `@validator` decorator executes validation functions immediately when they are defined (using an IIFE - Immediately Invoked Function Expression pattern), ensuring your environment variables are validated at startup time.
+
+#### Basic Usage
+
+```python
+from envist import Envist, validator
+
+env = Envist()
+
+@validator(env, "PORT")
+def validate_port(value: int) -> bool:
+    """Validate that PORT is within valid range."""
+    if not (1 <= value <= 65535):
+        raise ValueError("PORT must be between 1 and 65535")
+    return True
+
+@validator(env, "DATABASE_URL") 
+def validate_database_url(value: str) -> bool:
+    """Validate DATABASE_URL format."""
+    if not value.startswith(('postgresql://', 'mysql://', 'sqlite://')):
+        raise ValueError("DATABASE_URL must start with a valid database scheme")
+    return True
+
+@validator(env, "LOG_LEVEL")
+def validate_log_level(value: str) -> bool:
+    """Validate LOG_LEVEL is a valid logging level."""
+    valid_levels = ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
+    if value.upper() not in valid_levels:
+        raise ValueError(f"LOG_LEVEL must be one of: {', '.join(valid_levels)}")
+    return True
+```
+
+#### Real-World Validation Examples
+
+**API Configuration Validation:**
+
+```python
+from envist import Envist, validator
+import re
+
+env = Envist()
+
+@validator(env, "API_KEY")
+def validate_api_key(value: str) -> bool:
+    """Validate API key format and length."""
+    if len(value) < 32:
+        raise ValueError("API_KEY must be at least 32 characters long")
+    if not re.match(r'^[a-zA-Z0-9_-]+$', value):
+        raise ValueError("API_KEY contains invalid characters")
+    return True
+
+@validator(env, "RATE_LIMIT")
+def validate_rate_limit(value: int) -> bool:
+    """Validate rate limit is reasonable."""
+    if not (1 <= value <= 10000):
+        raise ValueError("RATE_LIMIT must be between 1 and 10000 requests per hour")
+    return True
+
+@validator(env, "ALLOWED_ORIGINS")
+def validate_allowed_origins(value: list) -> bool:
+    """Validate CORS origins are valid URLs."""
+    import urllib.parse
+    
+    for origin in value:
+        try:
+            result = urllib.parse.urlparse(origin)
+            if not result.scheme or not result.netloc:
+                raise ValueError(f"Invalid origin URL: {origin}")
+        except Exception:
+            raise ValueError(f"Malformed origin URL: {origin}")
+    return True
+```
+
+#### Validator Best Practices
+
+| Practice | Description | Example |
+|----------|-------------|---------|
+| **Early Validation** | Run validators at application startup | Place validators after `Envist()` initialization |
+| **Descriptive Messages** | Provide clear error messages | `"PORT must be between 1 and 65535"` vs `"Invalid port"` |
+| **Type Hints** | Use proper type hints for clarity | `def validate_port(value: int) -> bool:` |
+| **Comprehensive Checks** | Cover edge cases and security requirements | Check format, range, security constraints |
+| **Environment Awareness** | Validate differently per environment | Stricter validation in production |
+| **Cross-Validation** | Validate relationships between variables | Ensure min ≤ max values |
+
+> **💡 Pro Tip:** Use validators to catch configuration errors early and provide helpful error messages to developers setting up your application.
 
 ---
 
