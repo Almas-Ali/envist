@@ -19,3 +19,13 @@ print(parsed_values)
 # print(envist_data, type(envist_data))
 # for key, value in envist_data.items():
 #     print(f"{key} = {value} ({type(value)})")
+
+print(env.DEBUG)
+print(env.PORT)
+# print(dir(env))
+
+print(env.__annotations__)
+print(env.__dir__())
+
+
+print(os.getenv("DEBUG"))
