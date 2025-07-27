@@ -85,8 +85,9 @@ from .core.exceptions import (
     FileNotFoundError,
 )
 from .core.parser import Envist
+from .validators import validator
 
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 __all__ = ["Envist"]
 __author__ = "Md. Almas Ali"
 __all__ = [
@@ -97,4 +98,5 @@ __all__ = [
     "EnvistCastError",
     "EnvistTypeError",
     "EnvistValueError",
+    "validator",
 ]

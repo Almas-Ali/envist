@@ -18,9 +18,7 @@ custom_handlers = [
     create_stream_handler(level=logging.DEBUG),  # Set DEBUG level
     create_file_handler("app.log", level=logging.DEBUG),  # Set DEBUG level
     create_json_handler("app.json", level=logging.DEBUG),  # Set DEBUG level
-    create_rotating_handler(
-        "rotating.log", max_bytes=5 * 1024 * 1024, backup_count=5, level=logging.DEBUG
-    ),
+    create_rotating_handler("rotating.log", max_bytes=5 * 1024 * 1024, backup_count=5, level=logging.DEBUG),
 ]
 
 # Configure with custom handlers

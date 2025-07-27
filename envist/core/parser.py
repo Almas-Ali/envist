@@ -10,13 +10,7 @@ from ..logger import logger
 from ..utils.file_handler import FileHandler
 from ..utils.type_casters import TypeCaster
 from ..validators.env_validator import EnvValidator
-from .exceptions import (
-    EnvistCastError,
-    EnvistParseError,
-    EnvistTypeError,
-    EnvistValueError,
-    FileNotFoundError,
-)
+from .exceptions import EnvistCastError, EnvistParseError, EnvistTypeError, EnvistValueError, FileNotFoundError
 
 
 class Envist:
@@ -26,7 +20,10 @@ class Envist:
     """
 
     def __init__(
-        self, path: str = ".env", accept_empty: bool = False, auto_cast: bool = True
+        self,
+        path: str = ".env",
+        accept_empty: bool = False,
+        auto_cast: bool = True,
     ) -> None:
         """Constructor for Envist
 
@@ -46,14 +43,29 @@ class Envist:
         logger.info(f"Initializing Envist with file: {path}")
         self._load_env()
 
+    def _set_env_var(self, key: str, value: str) -> None:
+        """Set environment variable in both os.environ and shell environment
+
+        Args:
+            key: Environment variable key
+            value: Environment variable value (as string)
+        """
+        os.environ[key] = value
+
+    def _unset_env_var(self, key: str) -> None:
+        """Unset environment variable from both os.environ and shell environment
+
+        Args:
+            key: Environment variable key to unset
+        """
+        os.environ.pop(key, None)
+
     def _load_env(self) -> None:
         """Load environment variables from file"""
         try:
             # Read and filter file lines, preserving whitespace for string type annotations
             raw_lines = self._file_handler.read_file(self._path)
-            clean_lines = self._file_handler.filter_lines(
-                raw_lines, preserve_whitespace=True
-            )
+            clean_lines = self._file_handler.filter_lines(raw_lines, preserve_whitespace=True)
 
             # First pass: Parse all lines and store raw values
             raw_env = {}
@@ -61,11 +73,9 @@ class Envist:
 
             for line_num, line in enumerate(clean_lines, 1):
                 try:
-                    key, value, cast_type = self._validator.parse_line_with_cast(
-                        line, self._accept_empty
-                    )
+                    key, value, cast_type = self._validator.parse_line_with_cast(line, self._accept_empty)
 
-                    key, value = key.strip(), value.strip() # Strip whitespace
+                    key, value = key.strip(), value.strip()  # Strip whitespace
                     raw_env[key] = value
                     if cast_type:
                         cast_types[key] = cast_type
@@ -93,19 +103,15 @@ class Envist:
 
                         self._env[key] = value
                         # OS environment variable is always string
-                        os.environ[key] = str(value) if value is not None else ""
-                    elif (
-                        value is not None and self._accept_empty
-                    ):  # Empty string case with accept_empty=True
+                        self._set_env_var(key, str(value) if value is not None else "")
+                    elif value is not None and self._accept_empty:  # Empty string case with accept_empty=True
                         # For empty values with type casting, try to create empty collections
                         if self._auto_cast and cast_type:
                             try:
                                 # Try to cast empty string to get default empty value for the type
                                 value = self._type_caster.cast_value("", cast_type)
                                 self._env[key] = value
-                                os.environ[key] = (
-                                    str(value) if value is not None else ""
-                                )
+                                self._set_env_var(key, str(value) if value is not None else "")
                             except Exception as e:
                                 # Re-raise casting errors
                                 raise EnvistCastError(
@@ -114,19 +120,19 @@ class Envist:
                         else:
                             # Store as None when empty and accept_empty=True (no type casting)
                             self._env[key] = None
-                            os.environ[key] = ""
+                            self._set_env_var(key, "")
                     elif value is not None:  # Empty string case with accept_empty=False
                         # For keys declared without value (value=""), store as None
                         if not value:  # Empty string
                             self._env[key] = None
-                            os.environ[key] = ""
+                            self._set_env_var(key, "")
                         else:
                             self._env[key] = value
-                            os.environ[key] = value
+                            self._set_env_var(key, value)
                     else:
                         # Key declared without value
                         self._env[key] = None
-                        os.environ[key] = ""
+                        self._set_env_var(key, "")
 
                 except EnvistCastError as e:
                     # Re-raise casting errors instead of silently handling them
@@ -137,9 +143,7 @@ class Envist:
             logger.log_env_parse(self._path, len(raw_env))
 
         except Exception as e:
-            if not isinstance(
-                e, (EnvistParseError, EnvistCastError, FileNotFoundError)
-            ):
+            if not isinstance(e, (EnvistParseError, EnvistCastError, FileNotFoundError)):
                 raise EnvistParseError(f"Unexpected error loading env file: {e}")
             raise
 
@@ -167,23 +171,17 @@ class Envist:
 
         def resolve_recursively(val: str, depth: int = 0) -> str:
             if depth > 10:  # Prevent infinite recursion
-                raise EnvistParseError(
-                    f"Circular reference detected or too deep nesting in variable resolution"
-                )
+                raise EnvistParseError("Circular reference detected or too deep nesting in variable resolution")
 
             current_matches = pattern.findall(val)
 
             for match in current_matches:
                 if match in resolved_vars:
-                    raise EnvistParseError(
-                        f"Circular reference detected for variable: {match}"
-                    )
+                    raise EnvistParseError(f"Circular reference detected for variable: {match}")
 
                 if match in env_dict:
                     resolved_vars.add(match)
-                    replacement = (
-                        str(env_dict[match]) if env_dict[match] is not None else ""
-                    )
+                    replacement = str(env_dict[match]) if env_dict[match] is not None else ""
 
                     # If the replacement also contains variables, resolve them recursively
                     if self._is_variable(replacement):
@@ -256,7 +254,7 @@ class Envist:
             value = self._resolve_variable(value)
 
         self._env[key] = value
-        os.environ[key] = str(value) if value is not None else ""
+        self._set_env_var(key, str(value) if value is not None else "")
         logger.info(f"Set environment variable '{key}' = '{value}'")
         return self._env[key]
 
@@ -282,7 +280,7 @@ class Envist:
             raise EnvistValueError(f'"{key}" not found in env')
 
         self._env.pop(key, None)
-        os.environ.pop(key, None)
+        self._unset_env_var(key)
         logger.info(f"Unset environment variable '{key}'")
 
     def unset_all(self, data_list: Optional[ListType[str]] = None) -> None:
@@ -296,18 +294,16 @@ class Envist:
                 if key not in self._env:
                     raise EnvistValueError(f'"{key}" not found in env')
                 self._env.pop(key, None)
-                os.environ.pop(key, None)
+                self._unset_env_var(key)
                 logger.info(f"Unset environment variable '{key}'")
         else:
             # Clear all environment variables
             for key in list(self._env.keys()):
-                os.environ.pop(key, None)
+                self._unset_env_var(key)
             self._env.clear()
             logger.info("Unset all environment variables")
 
-    def save(
-        self, pretty: bool = False, sort_keys: bool = False, example_file: bool = False
-    ) -> None:
+    def save(self, pretty: bool = False, sort_keys: bool = False, example_file: bool = False) -> None:
         """Save updated environment variables to file
 
         Args:
@@ -342,7 +338,7 @@ class Envist:
         """Reload environment variables from file"""
         # Clear current environment variables from os.environ
         for key in list(self._env.keys()):
-            os.environ.pop(key, None)
+            self._unset_env_var(key)
 
         self._env.clear()
         self._load_env()
@@ -385,3 +381,43 @@ class Envist:
     def __str__(self) -> str:
         """Return a string representation of the object"""
         return f'<Envist path="{self._path}">'
+
+    @property
+    def __annotations__(self) -> dict[str, type]:
+        """Return a dictionary of variable annotations"""
+        parent_annotations = getattr(super(), "__annotations__", {})
+        return {key: type(value) for key, value in self._env.items()} | parent_annotations
+
+    def __getattr__(self, item: str) -> Any:
+        """Allow attribute-style access for known keys"""
+        # Only look in _env if it exists and the item doesn't start with _
+        if hasattr(self, "_env") and not item.startswith("_") and item in self._env:
+            return self._env[item]
+        raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{item}'")
+
+    def __setattr__(self, key: str, value: Any) -> None:
+        """Allow attribute-style assignment"""
+        # Internal attributes (starting with _) should be set directly
+        if key.startswith("_") or key in ("path",):
+            super().__setattr__(key, value)
+        else:
+            # Environment variables should go through the set method
+            # But only if the object is fully initialized
+            if hasattr(self, "_env"):
+                self.set(key, value)
+            else:
+                super().__setattr__(key, value)
+
+    def __delattr__(self, key: str) -> None:
+        """Allow attribute-style deletion"""
+        # Only allow deletion of environment variables, not internal attributes
+        if key.startswith("_"):
+            raise AttributeError(f"Cannot delete internal attribute '{key}'")
+        if hasattr(self, "_env") and key in self._env:
+            self.unset(key)
+        else:
+            raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{key}'")
+
+    def __dir__(self) -> list[str]:
+        """Return a list of environment variable keys"""
+        return list(self._env.keys()) + super().__dir__()

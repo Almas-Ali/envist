@@ -150,9 +150,7 @@ SYNC_INT<int>=42"""
         env.save()
 
         # Load from file again
-        new_env = Envist(
-            temp_env_file, auto_cast=False
-        )  # No auto-cast to verify raw values
+        new_env = Envist(temp_env_file, auto_cast=False)  # No auto-cast to verify raw values
 
         assert new_env.get("PERSIST_STRING") == "test_value"
         assert new_env.get("PERSIST_INT") == "42"  # Saved as string
@@ -204,9 +202,7 @@ CONFIG<dict<str, str>>=api_url=${API_V1},base_url=${BASE_URL}"""
 
         # Test nested resolution
         assert env.get("USER_ENDPOINT") == "https://example.com:8080/api/v1/users"
-        assert (
-            env.get("USER_PROFILE") == "https://example.com:8080/api/v1/users/profile"
-        )
+        assert env.get("USER_PROFILE") == "https://example.com:8080/api/v1/users/profile"
 
         # Test variables in collections
         endpoints = env.get("ENDPOINTS")

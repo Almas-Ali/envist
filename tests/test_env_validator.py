@@ -27,9 +27,7 @@ class TestEnvValidator:
 
     def test_parse_line_with_cast_nested_types(self):
         """Test parsing with nested type annotations"""
-        key, value, cast_type = EnvValidator.parse_line_with_cast(
-            "NUMBERS<list<int>>=1,2,3"
-        )
+        key, value, cast_type = EnvValidator.parse_line_with_cast("NUMBERS<list<int>>=1,2,3")
 
         assert key == "NUMBERS"
         assert value == "1,2,3"
@@ -37,9 +35,7 @@ class TestEnvValidator:
 
     def test_parse_line_with_cast_complex_nested(self):
         """Test parsing with complex nested type annotations"""
-        key, value, cast_type = EnvValidator.parse_line_with_cast(
-            "CONFIG<dict<str, list<int>>>=key1=[1,2,3]"
-        )
+        key, value, cast_type = EnvValidator.parse_line_with_cast("CONFIG<dict<str, list<int>>>=key1=[1,2,3]")
 
         assert key == "CONFIG"
         assert value == "key1=[1,2,3]"
@@ -85,17 +81,13 @@ class TestEnvValidator:
             EnvValidator.parse_line_with_cast("KEY=")
 
         # With accept_empty=True
-        key, value, cast_type = EnvValidator.parse_line_with_cast(
-            "KEY=", accept_empty=True
-        )
+        key, value, cast_type = EnvValidator.parse_line_with_cast("KEY=", accept_empty=True)
         assert key == "KEY"
         assert value == ""
         assert cast_type is None
 
         # With type annotation and empty value
-        key, value, cast_type = EnvValidator.parse_line_with_cast(
-            "TYPED<int>=", accept_empty=True
-        )
+        key, value, cast_type = EnvValidator.parse_line_with_cast("TYPED<int>=", accept_empty=True)
         assert key == "TYPED"
         assert value == ""
         assert cast_type == "int"
@@ -221,9 +213,7 @@ class TestEnvValidator:
 
     def test_parse_line_with_cast_equals_in_value(self):
         """Test parsing lines where the value contains equals signs"""
-        key, value, cast_type = EnvValidator.parse_line_with_cast(
-            "URL=http://example.com?param=value"
-        )
+        key, value, cast_type = EnvValidator.parse_line_with_cast("URL=http://example.com?param=value")
 
         assert key == "URL"
         assert value == "http://example.com?param=value"
@@ -241,9 +231,7 @@ class TestEnvValidator:
 
     def test_parse_line_with_cast_nested_brackets_in_value(self):
         """Test parsing values that contain bracket characters"""
-        key, value, cast_type = EnvValidator.parse_line_with_cast(
-            "FORMULA=array[index] + dict[key]"
-        )
+        key, value, cast_type = EnvValidator.parse_line_with_cast("FORMULA=array[index] + dict[key]")
 
         assert key == "FORMULA"
         assert value == "array[index] + dict[key]"
@@ -265,35 +253,25 @@ class TestEnvValidator:
     def test_edge_case_type_annotations(self):
         """Test edge cases in type annotations"""
         # Test deeply nested types
-        key, value, cast_type = EnvValidator.parse_line_with_cast(
-            "DEEP<list<list<list<int>>>>=data"
-        )
+        key, value, cast_type = EnvValidator.parse_line_with_cast("DEEP<list<list<list<int>>>>=data")
         assert cast_type == "list<list<list<int>>>"
 
         # Test multiple parameters in dict
-        key, value, cast_type = EnvValidator.parse_line_with_cast(
-            "COMPLEX<dict<str, list<dict<str, int>>>>=data"
-        )
+        key, value, cast_type = EnvValidator.parse_line_with_cast("COMPLEX<dict<str, list<dict<str, int>>>>=data")
         assert cast_type == "dict<str, list<dict<str, int>>>"
 
     def test_parse_line_with_cast_invalid_type_syntax_detection(self):
         """Test detection of invalid type syntax during parsing"""
         with pytest.raises(EnvistParseError, match="Invalid type syntax"):
-            EnvValidator.parse_line_with_cast(
-                "KEY<list<int>=value"
-            )  # Missing closing bracket
+            EnvValidator.parse_line_with_cast("KEY<list<int>=value")  # Missing closing bracket
 
         with pytest.raises(EnvistParseError, match="Invalid type syntax"):
-            EnvValidator.parse_line_with_cast(
-                "KEY<list<int>>>=value"
-            )  # Extra closing bracket
+            EnvValidator.parse_line_with_cast("KEY<list<int>>>=value")  # Extra closing bracket
 
     def test_empty_key_validation(self):
         """Test validation with empty key."""
         # Test case with line that has no key (starts with equals)
-        with pytest.raises(
-            EnvistParseError, match="Line cannot start with '=' \\(missing key\\)"
-        ):
+        with pytest.raises(EnvistParseError, match="Line cannot start with '=' \\(missing key\\)"):
             EnvValidator.parse_line_with_cast("=value", accept_empty=True)
 
     def test_invalid_type_syntax_validation(self):
@@ -433,25 +411,15 @@ class TestEnvValidator:
 
         # Test invalid keys
         assert EnvValidator._validate_key_format("") is False
-        assert (
-            EnvValidator._validate_key_format("123KEY") is False
-        )  # Starts with number
-        assert (
-            EnvValidator._validate_key_format("KEY-WITH-DASH") is False
-        )  # Contains dash
-        assert (
-            EnvValidator._validate_key_format("KEY WITH SPACE") is False
-        )  # Contains space
-        assert (
-            EnvValidator._validate_key_format("KEY.WITH.DOT") is False
-        )  # Contains dot
+        assert EnvValidator._validate_key_format("123KEY") is False  # Starts with number
+        assert EnvValidator._validate_key_format("KEY-WITH-DASH") is False  # Contains dash
+        assert EnvValidator._validate_key_format("KEY WITH SPACE") is False  # Contains space
+        assert EnvValidator._validate_key_format("KEY.WITH.DOT") is False  # Contains dot
 
     def test_no_bracket_no_colon_lines(self):
         """Test lines without brackets or colons."""
         # Test simple assignment - this actually gets parsed normally
-        result = EnvValidator.parse_line_with_cast(
-            "SIMPLE_VAR=value", accept_empty=True
-        )
+        result = EnvValidator.parse_line_with_cast("SIMPLE_VAR=value", accept_empty=True)
         assert result is not None
         key, value, cast_type = result
         assert key == "SIMPLE_VAR"
@@ -469,9 +437,7 @@ class TestEnvValidator:
     def test_angle_bracket_position_validation(self):
         """Test angle bracket position validation in fallback logic."""
         # Test line starting with equals - this raises an exception
-        with pytest.raises(
-            EnvistParseError, match="Line cannot start with '=' \\(missing key\\)"
-        ):
+        with pytest.raises(EnvistParseError, match="Line cannot start with '=' \\(missing key\\)"):
             EnvValidator.parse_line_with_cast("=VAR<type>value", accept_empty=True)
 
         # Test simple assignment (not malformed)
@@ -485,9 +451,7 @@ class TestEnvValidator:
     def test_bracket_mismatch_in_complex_parsing(self):
         """Test bracket mismatch in complex parsing logic."""
         # Test with unmatched brackets
-        result = EnvValidator.parse_line_with_cast(
-            "VAR:List<str>=value", accept_empty=True
-        )
+        result = EnvValidator.parse_line_with_cast("VAR:List<str>=value", accept_empty=True)
         assert result is not None  # Should work fine
 
         # Test with invalid syntax in colon format

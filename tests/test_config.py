@@ -191,9 +191,7 @@ class TestEnvistConfig:
             handlers = logger_instance.get_handlers()
 
             # Find console handler and check its level
-            console_handlers = [
-                h for h in handlers if isinstance(h, logging.StreamHandler)
-            ]
+            console_handlers = [h for h in handlers if isinstance(h, logging.StreamHandler)]
             assert len(console_handlers) >= 1
 
             # In debug mode, console handler should be at DEBUG level
@@ -209,9 +207,7 @@ class TestEnvistConfig:
             handlers = logger_instance.get_handlers()
 
             # Find console handler and check its level
-            console_handlers = [
-                h for h in handlers if isinstance(h, logging.StreamHandler)
-            ]
+            console_handlers = [h for h in handlers if isinstance(h, logging.StreamHandler)]
             assert len(console_handlers) >= 1
 
             # In production mode, console handler should be at WARNING level
@@ -332,9 +328,7 @@ class TestEnvistConfig:
         for env_value, expected in test_cases:
             with patch.dict(os.environ, {"ENVIST_DEBUG": env_value}):
                 config_instance = EnvistConfig()
-                assert config_instance.debug_mode == expected, (
-                    f"Failed for value: '{env_value}'"
-                )
+                assert config_instance.debug_mode == expected, f"Failed for value: '{env_value}'"
 
     def test_log_level_case_conversion(self):
         """Test that log levels are properly converted to uppercase."""
@@ -386,9 +380,7 @@ class TestEnvistConfig:
             config_instance = EnvistConfig()
 
             assert config_instance.debug_mode is False  # Whitespace != 'true'
-            assert (
-                config_instance.log_level == "\t".upper()
-            )  # Whitespace preserved and uppercased
+            assert config_instance.log_level == "\t".upper()  # Whitespace preserved and uppercased
             assert config_instance.log_format == "\n"  # Preserved as-is
             assert config_instance.rotating_logs is False  # Whitespace != 'true'
 
@@ -413,9 +405,7 @@ class TestEnvistConfig:
         for env_value, expected in test_cases:
             with patch.dict(os.environ, {"ENVIST_ROTATING_LOGS": env_value}):
                 config_instance = EnvistConfig()
-                assert config_instance.rotating_logs == expected, (
-                    f"Failed for rotating_logs value: '{env_value}'"
-                )
+                assert config_instance.rotating_logs == expected, f"Failed for rotating_logs value: '{env_value}'"
 
     def test_file_handler_creation_without_log_file(self):
         """Test that no file handler is created when log_file is None."""
