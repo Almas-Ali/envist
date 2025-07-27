@@ -1,6 +1,5 @@
 import logging
 import os
-from typing import List, Optional
 
 from .logger import EnvistLogger, create_json_handler, create_rotating_handler
 
@@ -13,9 +12,7 @@ class EnvistConfig:
         self.log_level = os.getenv("ENVIST_LOG_LEVEL", "INFO").upper()
         self.log_format = os.getenv("ENVIST_LOG_FORMAT", "standard")  # standard, json
         self.log_file = os.getenv("ENVIST_LOG_FILE", None)
-        self.rotating_logs = (
-            os.getenv("ENVIST_ROTATING_LOGS", "false").lower() == "true"
-        )
+        self.rotating_logs = os.getenv("ENVIST_ROTATING_LOGS", "false").lower() == "true"
 
         # Configure logger based on environment
         self._configure_logger()
@@ -26,9 +23,7 @@ class EnvistConfig:
 
         # Console handler
         console_handler = logging.StreamHandler()
-        console_handler.setLevel(
-            logging.WARNING if not self.debug_mode else logging.DEBUG
-        )
+        console_handler.setLevel(logging.WARNING if not self.debug_mode else logging.DEBUG)
         console_handler.setFormatter(logging.Formatter("%(levelname)s: %(message)s"))
         handlers.append(console_handler)
 
@@ -40,11 +35,7 @@ class EnvistConfig:
                 file_handler = create_rotating_handler(self.log_file)
             else:
                 file_handler = logging.FileHandler(self.log_file)
-                file_handler.setFormatter(
-                    logging.Formatter(
-                        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-                    )
-                )
+                file_handler.setFormatter(logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s"))
             handlers.append(file_handler)
 
         # Configure the logger

@@ -187,9 +187,7 @@ def create_stream_handler(stream=None, level: int = logging.INFO) -> logging.Han
     return handler
 
 
-def create_file_handler(
-    log_file: Union[str, Path], level: int = logging.INFO
-) -> logging.Handler:
+def create_file_handler(log_file: Union[str, Path], level: int = logging.INFO) -> logging.Handler:
     """Create a basic file handler."""
     # Ensure directory exists
     log_path = Path(log_file)
@@ -197,16 +195,12 @@ def create_file_handler(
 
     handler = logging.FileHandler(log_file)
     handler.setLevel(level)
-    formatter = logging.Formatter(
-        "%(asctime)s - %(name)s - %(levelname)s - %(funcName)s:%(lineno)d - %(message)s"
-    )
+    formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(funcName)s:%(lineno)d - %(message)s")
     handler.setFormatter(formatter)
     return handler
 
 
-def create_json_handler(
-    log_file: Union[str, Path], level: int = logging.INFO
-) -> logging.Handler:
+def create_json_handler(log_file: Union[str, Path], level: int = logging.INFO) -> logging.Handler:
     """Create a JSON formatter handler for structured logging."""
     import json
     from datetime import datetime
@@ -247,20 +241,14 @@ def create_rotating_handler(
     log_path = Path(log_file)
     log_path.parent.mkdir(parents=True, exist_ok=True)
 
-    handler = RotatingFileHandler(
-        log_file, maxBytes=max_bytes, backupCount=backup_count
-    )
+    handler = RotatingFileHandler(log_file, maxBytes=max_bytes, backupCount=backup_count)
     handler.setLevel(level)
-    formatter = logging.Formatter(
-        "%(asctime)s - %(name)s - %(levelname)s - %(funcName)s:%(lineno)d - %(message)s"
-    )
+    formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(funcName)s:%(lineno)d - %(message)s")
     handler.setFormatter(formatter)
     return handler
 
 
-def create_syslog_handler(
-    address: tuple = ("localhost", 514), level: int = logging.INFO
-) -> logging.Handler:
+def create_syslog_handler(address: tuple = ("localhost", 514), level: int = logging.INFO) -> logging.Handler:
     """Create a syslog handler for system logging."""
     from logging.handlers import SysLogHandler
 
@@ -275,15 +263,11 @@ def create_default_handlers() -> List[logging.Handler]:
     """Create default handlers (console + file)."""
     return [
         create_stream_handler(level=logging.WARNING),
-        create_file_handler(
-            Path.home() / ".envist" / "envist.log", level=logging.DEBUG
-        ),
+        create_file_handler(Path.home() / ".envist" / "envist.log", level=logging.DEBUG),
     ]
 
 
-def configure_logger(
-    handlers: Optional[List[logging.Handler]] = None, level: str = "INFO"
-) -> EnvistLogger:
+def configure_logger(handlers: Optional[List[logging.Handler]] = None, level: str = "INFO") -> EnvistLogger:
     """Configure the global logger with specified handlers and level."""
     logger_instance = EnvistLogger.configure(custom_handlers=handlers, reset=True)
     logger_instance.set_level(level)

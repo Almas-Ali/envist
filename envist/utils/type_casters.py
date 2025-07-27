@@ -2,7 +2,7 @@
 
 import json
 import re
-from typing import Any, Callable, Dict, List, Set, Tuple, Union
+from typing import Any, Callable, Dict, List, Union
 
 from ..core.exceptions import EnvistCastError
 
@@ -66,9 +66,7 @@ class TypeCaster:
                 # Two inner types separated by comma
                 inner_parts = self._split_type_args(inner_types)
                 if len(inner_parts) != 2:
-                    raise EnvistCastError(
-                        f"Dict type requires exactly 2 type arguments: {type_str}"
-                    )
+                    raise EnvistCastError(f"Dict type requires exactly 2 type arguments: {type_str}")
 
                 key_type = self._parse_type_syntax(inner_parts[0].strip())
                 value_type = self._parse_type_syntax(inner_parts[1].strip())
@@ -137,11 +135,7 @@ class TypeCaster:
         base_type = type_info["type"]
 
         # Check for unsupported nested types first
-        if (
-            "inner_types" in type_info
-            or "inner_type" in type_info
-            or "key_type" in type_info
-        ):
+        if "inner_types" in type_info or "inner_type" in type_info or "key_type" in type_info:
             # This is a nested type, check if base type is supported for nesting
             supported_nested_types = {"list", "set", "tuple", "dict"}
             if base_type not in supported_nested_types:
@@ -153,9 +147,7 @@ class TypeCaster:
             collection = self._cast_to_smart_list(value)
             inner_type = type_info["inner_type"]
 
-            casted_items = [
-                self._apply_type_casting(item, inner_type) for item in collection
-            ]
+            casted_items = [self._apply_type_casting(item, inner_type) for item in collection]
 
             if base_type == "list":
                 return casted_items
@@ -302,9 +294,7 @@ class TypeCaster:
                 if bracket_count == 0:
                     if current.strip():
                         # Parse the inner list content
-                        inner_list_items = [
-                            item.strip() for item in current.split(",") if item.strip()
-                        ]
+                        inner_list_items = [item.strip() for item in current.split(",") if item.strip()]
                         inner_lists.append(inner_list_items)
                     current = ""
                 else:
@@ -466,9 +456,7 @@ class TypeCaster:
     def _remove_quotes(self, value: str) -> str:
         """Remove surrounding quotes from value"""
         if len(value) >= 2:
-            if (value.startswith('"') and value.endswith('"')) or (
-                value.startswith("'") and value.endswith("'")
-            ):
+            if (value.startswith('"') and value.endswith('"')) or (value.startswith("'") and value.endswith("'")):
                 return value[1:-1]
         return value
 
@@ -597,9 +585,7 @@ class TypeCaster:
         """Public method for splitting type arguments (test compatibility)"""
         return self._split_type_args(args_str)
 
-    def apply_type_casting(
-        self, value: Any, type_info: Union[Dict[str, Any], tuple]
-    ) -> Any:
+    def apply_type_casting(self, value: Any, type_info: Union[Dict[str, Any], tuple]) -> Any:
         """Public method for applying type casting (test compatibility)"""
         if isinstance(type_info, tuple):
             # Handle tuple format (type_name, inner_types)

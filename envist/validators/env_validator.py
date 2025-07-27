@@ -10,9 +10,7 @@ class EnvValidator:
     """Validates environment variable syntax and values"""
 
     @staticmethod
-    def parse_line_with_cast(
-        line: str, accept_empty: bool = False
-    ) -> Tuple[str, str, Optional[str]]:
+    def parse_line_with_cast(line: str, accept_empty: bool = False) -> Tuple[str, str, Optional[str]]:
         """Parse a single line into key-value pair with optional nested type casting
 
         Args:
@@ -46,9 +44,7 @@ class EnvValidator:
             # Check if it looks like a valid environment variable key
             # Only allow simple identifiers without spaces for keys without values
             if " " in key or not key.replace("_", "").replace("-", "").isalnum():
-                raise EnvistParseError(
-                    f"Invalid line format: '{line.strip()}' (missing '=' assignment)"
-                )
+                raise EnvistParseError(f"Invalid line format: '{line.strip()}' (missing '=' assignment)")
 
             # Return empty value for keys without equals
             return key, "", None
@@ -149,9 +145,7 @@ class EnvValidator:
 
                     # Check for extra closing brackets in remainder before =
                     if ">" in remainder.split("=")[0]:
-                        raise EnvistParseError(
-                            f"Invalid type syntax: extra closing brackets in {line}"
-                        )
+                        raise EnvistParseError(f"Invalid type syntax: extra closing brackets in {line}")
 
                     if remainder.startswith("="):
                         raw_value = remainder[1:]
@@ -174,14 +168,10 @@ class EnvValidator:
                         return key, value, cast_type
                     else:
                         # Has type annotation but no equals after it
-                        raise EnvistParseError(
-                            f"Invalid type annotation format: {line}"
-                        )
+                        raise EnvistParseError(f"Invalid type annotation format: {line}")
                 else:
                     # Unmatched brackets
-                    raise EnvistParseError(
-                        f"Invalid type syntax: unmatched brackets in {line}"
-                    )
+                    raise EnvistParseError(f"Invalid type syntax: unmatched brackets in {line}")
             # If < and > exist but not in the right position, treat as simple line
 
         # Try to match simple pattern: KEY = value (always use permissive regex)
@@ -304,9 +294,7 @@ class EnvValidator:
     def _remove_quotes(value: str) -> str:
         """Remove surrounding quotes from value"""
         if len(value) >= 2:
-            if (value.startswith('"') and value.endswith('"')) or (
-                value.startswith("'") and value.endswith("'")
-            ):
+            if (value.startswith('"') and value.endswith('"')) or (value.startswith("'") and value.endswith("'")):
                 return value[1:-1]
         return value
 

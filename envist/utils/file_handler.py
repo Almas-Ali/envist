@@ -64,9 +64,7 @@ class FileHandler:
                 elif char == "#" and not in_quotes:
                     # A comment is a '#' that is at the start of the stripped line
                     # or is preceded by whitespace.
-                    if stripped_line.startswith("#") or (
-                        i > 0 and line[i - 1].isspace()
-                    ):
+                    if stripped_line.startswith("#") or (i > 0 and line[i - 1].isspace()):
                         comment_start = i
                         break
 
