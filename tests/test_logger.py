@@ -46,9 +46,7 @@ class TestEnvistLogger:
     def test_initialization_with_custom_handlers(self):
         """Test initialization with custom handlers."""
         custom_handler = logging.StreamHandler()
-        logger_instance = EnvistLogger.configure(
-            custom_handlers=[custom_handler], reset=True
-        )
+        logger_instance = EnvistLogger.configure(custom_handlers=[custom_handler], reset=True)
 
         assert custom_handler in logger_instance.get_handlers()
 
@@ -126,9 +124,7 @@ class TestEnvistLogger:
 
         with patch.object(logger_instance.logger, "debug") as mock_debug:
             logger_instance.debug("Test debug message", extra_info="test")
-            mock_debug.assert_called_once_with(
-                "Test debug message", extra={"extra_info": "test"}
-            )
+            mock_debug.assert_called_once_with("Test debug message", extra={"extra_info": "test"})
 
     def test_info_logging(self):
         """Test info logging functionality."""
@@ -136,9 +132,7 @@ class TestEnvistLogger:
 
         with patch.object(logger_instance.logger, "info") as mock_info:
             logger_instance.info("Test info message", user="admin")
-            mock_info.assert_called_once_with(
-                "Test info message", extra={"user": "admin"}
-            )
+            mock_info.assert_called_once_with("Test info message", extra={"user": "admin"})
 
     def test_warning_logging(self):
         """Test warning logging functionality."""
@@ -154,9 +148,7 @@ class TestEnvistLogger:
 
         with patch.object(logger_instance.logger, "error") as mock_error:
             logger_instance.error("Test error message", error_code=500)
-            mock_error.assert_called_once_with(
-                "Test error message", extra={"error_code": 500}
-            )
+            mock_error.assert_called_once_with("Test error message", extra={"error_code": 500})
 
     def test_critical_logging(self):
         """Test critical logging functionality."""
@@ -172,9 +164,7 @@ class TestEnvistLogger:
 
         with patch.object(logger_instance, "info") as mock_info:
             logger_instance.log_env_parse("/path/to/file.env", 5)
-            mock_info.assert_called_once_with(
-                "Parsed /path/to/file.env: found 5 variables"
-            )
+            mock_info.assert_called_once_with("Parsed /path/to/file.env: found 5 variables")
 
     def test_log_typecast_success(self):
         """Test successful typecast logging."""
@@ -190,9 +180,7 @@ class TestEnvistLogger:
 
         with patch.object(logger_instance, "error") as mock_error:
             logger_instance.log_typecast("MY_VAR", "invalid", "int", False)
-            mock_error.assert_called_once_with(
-                "Failed to cast 'MY_VAR' = 'invalid' to int"
-            )
+            mock_error.assert_called_once_with("Failed to cast 'MY_VAR' = 'invalid' to int")
 
     def test_log_variable_expansion_with_change(self):
         """Test variable expansion logging when expansion occurs."""
@@ -200,9 +188,7 @@ class TestEnvistLogger:
 
         with patch.object(logger_instance, "debug") as mock_debug:
             logger_instance.log_variable_expansion("${HOME}/file", "/home/user/file")
-            mock_debug.assert_called_once_with(
-                "Expanded '${HOME}/file' to '/home/user/file'"
-            )
+            mock_debug.assert_called_once_with("Expanded '${HOME}/file' to '/home/user/file'")
 
     def test_log_variable_expansion_no_change(self):
         """Test variable expansion logging when no expansion occurs."""
@@ -218,9 +204,7 @@ class TestEnvistLogger:
 
         with patch.object(logger_instance, "debug") as mock_debug:
             logger_instance.log_variable_access("MY_VAR", True, "int")
-            mock_debug.assert_called_once_with(
-                "Retrieved variable 'MY_VAR' (cast to int)"
-            )
+            mock_debug.assert_called_once_with("Retrieved variable 'MY_VAR' (cast to int)")
 
     def test_log_variable_access_found_without_cast(self):
         """Test variable access logging when variable is found without casting."""
@@ -296,9 +280,7 @@ class TestEnvistLogger:
 
         # Configure with reset
         custom_handler = logging.StreamHandler()
-        logger_instance2 = EnvistLogger.configure(
-            custom_handlers=[custom_handler], reset=True
-        )
+        logger_instance2 = EnvistLogger.configure(custom_handlers=[custom_handler], reset=True)
 
         # Should have new handlers
         new_handlers = logger_instance2.get_handlers()
@@ -335,9 +317,7 @@ class TestEnvistLogger:
     def test_custom_handlers_priority(self):
         """Test that custom handlers take priority over default handlers."""
         custom_handler = logging.StreamHandler()
-        logger_instance = EnvistLogger.configure(
-            custom_handlers=[custom_handler], reset=True
-        )
+        logger_instance = EnvistLogger.configure(custom_handlers=[custom_handler], reset=True)
 
         handlers = logger_instance.get_handlers()
         assert custom_handler in handlers
@@ -465,9 +445,7 @@ class TestLoggerFactoryFunctions:
             log_file_path = tmp_file.name
 
         try:
-            handler = create_rotating_handler(
-                log_file_path, max_bytes=1024, backup_count=3, level=logging.DEBUG
-            )
+            handler = create_rotating_handler(log_file_path, max_bytes=1024, backup_count=3, level=logging.DEBUG)
 
             assert handler.level == logging.DEBUG
             assert handler.maxBytes == 1024
@@ -501,9 +479,7 @@ class TestLoggerFactoryFunctions:
 
     def test_create_syslog_handler(self):
         """Test creating syslog handler."""
-        handler = create_syslog_handler(
-            address=("localhost", 514), level=logging.WARNING
-        )
+        handler = create_syslog_handler(address=("localhost", 514), level=logging.WARNING)
 
         assert handler.level == logging.WARNING
         assert isinstance(handler.formatter, logging.Formatter)
@@ -517,9 +493,7 @@ class TestLoggerFactoryFunctions:
         assert any(isinstance(h, logging.FileHandler) for h in handlers)
 
         # Check levels
-        stream_handler = next(
-            h for h in handlers if isinstance(h, logging.StreamHandler)
-        )
+        stream_handler = next(h for h in handlers if isinstance(h, logging.StreamHandler))
         file_handler = next(h for h in handlers if isinstance(h, logging.FileHandler))
 
         assert stream_handler.level == logging.WARNING

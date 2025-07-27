@@ -155,9 +155,7 @@ class TestTypeCaster:
         with pytest.raises(EnvistCastError, match="Invalid type syntax"):
             caster._parse_type_syntax("list<int")  # Missing closing bracket
 
-        with pytest.raises(
-            EnvistCastError, match="Dict type requires exactly 2 type arguments"
-        ):
+        with pytest.raises(EnvistCastError, match="Dict type requires exactly 2 type arguments"):
             caster._parse_type_syntax("dict<str>")  # Dict needs 2 types
 
         with pytest.raises(EnvistCastError, match="Unsupported nested type"):
@@ -464,9 +462,7 @@ class TestTypeCaster:
         assert all(isinstance(cell, int) for row in result for cell in row)
 
         # dict<str, list<int>>
-        result = caster.cast_value(
-            "group1=[1,2,3],group2=[4,5,6]", "dict<str, list<int>>"
-        )
+        result = caster.cast_value("group1=[1,2,3],group2=[4,5,6]", "dict<str, list<int>>")
         assert result == {"group1": [1, 2, 3], "group2": [4, 5, 6]}
         assert all(isinstance(k, str) for k in result.keys())
         assert all(isinstance(v, list) for v in result.values())
@@ -496,9 +492,7 @@ class TestTypeCaster:
         assert result == [1, 2, 3]
 
         # Dict with whitespace
-        result = caster.cast_value(
-            "  key1 = value1 , key2 = value2  ", "dict<str, str>"
-        )
+        result = caster.cast_value("  key1 = value1 , key2 = value2  ", "dict<str, str>")
         assert result == {"key1": "value1", "key2": "value2"}
 
     def test_invalid_nested_type_syntax(self):
@@ -527,14 +521,10 @@ class TestTypeCaster:
         caster = TypeCaster()
 
         # Dict should have exactly 2 inner types
-        with pytest.raises(
-            EnvistCastError, match="Dict type requires exactly 2 type arguments"
-        ):
+        with pytest.raises(EnvistCastError, match="Dict type requires exactly 2 type arguments"):
             caster.parse_type_syntax("dict<str>")
 
-        with pytest.raises(
-            EnvistCastError, match="Dict type requires exactly 2 type arguments"
-        ):
+        with pytest.raises(EnvistCastError, match="Dict type requires exactly 2 type arguments"):
             caster.parse_type_syntax("dict<str, int, bool>")
 
     def test_invalid_inner_type_count_for_list(self):
@@ -656,9 +646,7 @@ class TestTypeCaster:
         assert result == ["no colon here"]
 
         # Test with complex nested values
-        result = caster.smart_split_dict_pairs(
-            'key1: "value, with: colon", key2: [1, 2, 3]'
-        )
+        result = caster.smart_split_dict_pairs('key1: "value, with: colon", key2: [1, 2, 3]')
         assert len(result) == 3  # Gets split incorrectly due to comma inside quotes
 
     def test_remove_quotes_edge_cases(self):
@@ -760,9 +748,7 @@ class TestTypeCaster:
         caster = TypeCaster()
 
         # Test with complex nested structure
-        result = caster.parse_dict_value(
-            '{"nested": {"key": "value"}, "list": [1, 2, 3]}'
-        )
+        result = caster.parse_dict_value('{"nested": {"key": "value"}, "list": [1, 2, 3]}')
         assert isinstance(result, dict)
         assert "nested" in result
         assert "list" in result

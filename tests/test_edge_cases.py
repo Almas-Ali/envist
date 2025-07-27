@@ -89,10 +89,7 @@ class TestEdgeCases:
     def test_validator_edge_cases(self):
         """Test EnvValidator edge cases"""
         # Test _validate_type_syntax with deeply nested valid syntax
-        assert (
-            EnvValidator._validate_type_syntax("dict<str, list<dict<str, int>>>")
-            is True
-        )
+        assert EnvValidator._validate_type_syntax("dict<str, list<dict<str, int>>>") is True
 
         # Test parse_line_with_cast with complex whitespace
         key, value, cast_type = EnvValidator.parse_line_with_cast(
@@ -237,9 +234,7 @@ BOOL_FROM_INT<bool>=1""")
         caster = TypeCaster()
 
         # Test deeply nested list parsing
-        deep_list = caster.cast_value(
-            "[[[1,2],[3,4]],[[5,6],[7,8]]]", "list<list<list<int>>>"
-        )
+        deep_list = caster.cast_value("[[[1,2],[3,4]],[[5,6],[7,8]]]", "list<list<list<int>>>")
         assert deep_list == [[[1, 2], [3, 4]], [[5, 6], [7, 8]]]
 
         # Test complex dict with nested types
@@ -279,9 +274,7 @@ ANOTHER_VALID=value""")
 
         # Test casting error in get method
         with pytest.raises(EnvistCastError):
-            env.get(
-                "STRING_NUM", cast="list<invalid_type>"
-            )  # Invalid type syntax should fail
+            env.get("STRING_NUM", cast="list<invalid_type>")  # Invalid type syntax should fail
 
     def test_save_edge_cases(self, temp_env_file):
         """Test save method edge cases"""

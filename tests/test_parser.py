@@ -246,9 +246,7 @@ class TestEnvistParser:
         env.save()
 
         # Verify by loading again
-        new_env = Envist(
-            env_file_with_content, auto_cast=False
-        )  # No casting to check raw values
+        new_env = Envist(env_file_with_content, auto_cast=False)  # No casting to check raw values
         assert new_env.get("NEW_KEY1") == "value1"
         assert new_env.get("NEW_KEY2") == "42"
 
@@ -472,9 +470,7 @@ class TestEnvistParser:
             with patch("envist.utils.file_handler.FileHandler.read_file") as mock_read:
                 mock_read.side_effect = ValueError("Unexpected file error")
 
-                with pytest.raises(
-                    EnvistParseError, match="Unexpected error loading env file"
-                ):
+                with pytest.raises(EnvistParseError, match="Unexpected error loading env file"):
                     Envist(temp_path)
         finally:
             Path(temp_path).unlink(missing_ok=True)
