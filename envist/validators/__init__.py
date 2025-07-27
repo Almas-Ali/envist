@@ -1,5 +1,5 @@
 from functools import wraps
-from typing import Callable, TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable
 
 if TYPE_CHECKING:
     from ..core.parser import Envist
@@ -8,7 +8,7 @@ from .env_validator import EnvValidator
 
 
 def _iief(func: Callable[[], bool]) -> Callable[[], bool]:
-    func()
+    return func()
 
 
 def validator(env: "Envist", name: str) -> Callable[[Callable[[str], bool]], bool]:

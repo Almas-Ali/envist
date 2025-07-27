@@ -10,13 +10,7 @@ from ..logger import logger
 from ..utils.file_handler import FileHandler
 from ..utils.type_casters import TypeCaster
 from ..validators.env_validator import EnvValidator
-from .exceptions import (
-    EnvistCastError,
-    EnvistParseError,
-    EnvistTypeError,
-    EnvistValueError,
-    FileNotFoundError,
-)
+from .exceptions import EnvistCastError, EnvistParseError, EnvistTypeError, EnvistValueError, FileNotFoundError
 
 
 class Envist:
@@ -391,7 +385,7 @@ class Envist:
     @property
     def __annotations__(self) -> dict[str, type]:
         """Return a dictionary of variable annotations"""
-        parent_annotations = getattr(super(), '__annotations__', {})
+        parent_annotations = getattr(super(), "__annotations__", {})
         return {key: type(value) for key, value in self._env.items()} | parent_annotations
 
     def __getattr__(self, item: str) -> Any:
