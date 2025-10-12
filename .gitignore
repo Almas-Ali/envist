@@ -13,3 +13,4 @@ htmlcov/
 .mypy_cache/
 .pytest_cache/
 uv.lock
+docs_src/site/
