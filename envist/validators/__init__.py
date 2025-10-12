@@ -1,5 +1,6 @@
 from functools import wraps
 from typing import TYPE_CHECKING, Callable
+from warnings import deprecated
 
 if TYPE_CHECKING:
     from ..core.parser import Envist
@@ -11,6 +12,10 @@ def _iief(func: Callable[[], bool]) -> Callable[[], bool]:
     return func()
 
 
+@deprecated(
+    "The @validator decorator is deprecated and will be removed in future releases. "
+    "Consider using the Envist.validator decorator instead."
+)
 def validator(env: "Envist", name: str) -> Callable[[Callable[[str], bool]], bool]:
     """Decorator to validate environment variable keys"""
 
