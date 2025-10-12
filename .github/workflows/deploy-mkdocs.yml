@@ -5,6 +5,11 @@ on:
     branches:
       - master
 
+permissions:
+  contents: write   # <-- allows push to gh-pages branch
+  pages: write      # optional; useful if you later switch to Pages artifact deploys
+  id-token: write   # optional; same as above
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
