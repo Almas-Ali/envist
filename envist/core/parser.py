@@ -2,9 +2,9 @@
 
 import os
 import re
-from typing import Any, Callable, Dict
+from functools import wraps
+from typing import Any, Callable, Dict, Optional, Union
 from typing import List as ListType
-from typing import Optional, Union
 
 from ..logger import logger
 from ..utils.file_handler import FileHandler
@@ -421,3 +421,17 @@ class Envist:
     def __dir__(self) -> list[str]:
         """Return a list of environment variable keys"""
         return list(self._env.keys()) + super().__dir__()
+
+    def validator(self, name: str) -> Callable[[Callable[[str], bool]], bool]:
+        """Decorator to validate environment variable keys"""
+
+        def decorator(func: Callable[[str], bool]) -> Callable[[str], bool]:
+            @wraps(func)
+            def wrapper() -> bool:
+                if not EnvValidator.validate_key(name):
+                    raise ValueError(f"Invalid key format: {name}")
+                return func(self.get(name))
+
+            return wrapper()
+
+        return decorator
