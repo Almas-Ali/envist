@@ -87,7 +87,7 @@ from .core.exceptions import (
 from .core.parser import Envist
 from .validators import validator
 
-__version__ = "0.1.2"
+__version__ = "0.1.3"
 __all__ = ["Envist"]
 __author__ = "Md. Almas Ali"
 __all__ = [
