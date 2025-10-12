@@ -15,11 +15,10 @@ jobs:
 
       - name: Set up Python
         uses: actions/setup-python@v5
-        working-directory: docs_src
         with:
           python-version: "3.13"
           cache: "pip"
-          cache-dependency-path: ./requirements.txt
+          cache-dependency-path: docs_src/requirements.txt
 
       - name: Install dependencies
         working-directory: docs_src
@@ -35,7 +34,7 @@ jobs:
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./site
+          publish_dir: docs_src/site
           keep_files: false
           destination_dir: .
           user_name: "github-actions[bot]"
